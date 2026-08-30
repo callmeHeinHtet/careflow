@@ -17,6 +17,12 @@ export type TestDb = ReturnType<typeof createTestDb>;
 
 export async function resetTestDb(db: TestDb) {
   await db.$transaction([
+    db.recoveryCode.deleteMany(),
+    db.mfaSecret.deleteMany(),
+    db.session.deleteMany(),
+    db.account.deleteMany(),
+    db.staffProfile.deleteMany(),
+    db.verificationToken.deleteMany(),
     db.payment.deleteMany(),
     db.invoiceLine.deleteMany(),
     db.invoice.deleteMany(),
@@ -32,5 +38,6 @@ export async function resetTestDb(db: TestDb) {
     db.patient.deleteMany(),
     db.department.deleteMany(),
     db.auditEvent.deleteMany(),
+    db.user.deleteMany(),
   ]);
 }

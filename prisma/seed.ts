@@ -8,6 +8,7 @@ import {
   PrescriptionStatus,
   Priority,
   Sex,
+  StaffRole,
   VisitStage,
   type PrismaClient,
 } from "../src/generated/prisma/client";
@@ -28,6 +29,9 @@ const ids = {
   ),
   lots: [1, 2, 3, 4].map((value) =>
     `50000000-0000-4000-8000-${String(value).padStart(12, "0")}`,
+  ),
+  users: [1, 2, 3, 4, 5, 6].map((value) =>
+    `90000000-0000-4000-8000-${String(value).padStart(12, "0")}`,
   ),
 };
 
@@ -51,7 +55,22 @@ const patients = [
   { mrn: "MRN-1008", first: "Aung Ko", last: "Ko", dob: "1979-07-30", sex: Sex.M, token: "OPD-014", department: 5, stage: VisitStage.DISCHARGED, priority: Priority.ROUTINE, symptoms: "Ear discomfort", arrival: "06:58", allergies: [] },
 ] as const;
 
+const staffMembers = [
+  { email: "reception@careflow.test", employee: "CF-REC-001", name: "Aye Aye", role: StaffRole.RECEPTION, department: 0 },
+  { email: "nurse@careflow.test", employee: "CF-NUR-001", name: "Maya Win", role: StaffRole.NURSE, department: 0 },
+  { email: "doctor@careflow.test", employee: "CF-DOC-001", name: "Dr. Aye Min", role: StaffRole.DOCTOR, department: 0 },
+  { email: "pharmacy@careflow.test", employee: "CF-PHA-001", name: "Thiri Moe", role: StaffRole.PHARMACY, department: null },
+  { email: "cashier@careflow.test", employee: "CF-CAS-001", name: "Min Thu", role: StaffRole.CASHIER, department: null },
+  { email: "admin@careflow.test", employee: "CF-ADM-001", name: "CareFlow Admin", role: StaffRole.ADMIN, department: null },
+] as const;
+
 async function clearOperationalData(db: PrismaClient) {
+  await db.recoveryCode.deleteMany();
+  await db.mfaSecret.deleteMany();
+  await db.session.deleteMany();
+  await db.account.deleteMany();
+  await db.staffProfile.deleteMany();
+  await db.verificationToken.deleteMany();
   await db.payment.deleteMany();
   await db.invoiceLine.deleteMany();
   await db.invoice.deleteMany();
@@ -67,6 +86,7 @@ async function clearOperationalData(db: PrismaClient) {
   await db.patient.deleteMany();
   await db.department.deleteMany();
   await db.auditEvent.deleteMany();
+  await db.user.deleteMany();
 }
 
 export async function seedCareFlow(db: PrismaClient) {
@@ -76,6 +96,25 @@ export async function seedCareFlow(db: PrismaClient) {
     for (const [index, [code, name, capacity]] of departments.entries()) {
       await tx.department.create({
         data: { id: ids.departments[index], code, name, capacity, displayOrder: index + 1 },
+      });
+    }
+
+    for (const [index, staff] of staffMembers.entries()) {
+      await tx.user.create({
+        data: {
+          id: ids.users[index],
+          email: staff.email,
+          name: staff.name,
+          staffProfile: {
+            create: {
+              employeeNumber: staff.employee,
+              displayName: staff.name,
+              role: staff.role,
+              departmentId:
+                staff.department === null ? null : ids.departments[staff.department],
+            },
+          },
+        },
       });
     }
 
@@ -164,7 +203,7 @@ export async function seedCareFlow(db: PrismaClient) {
     });
   });
 
-  return { departments: 6, patients: 8, visits: 8, medications: 4, invoices: 3, auditEvents: 3 };
+  return { departments: 6, patients: 8, visits: 8, medications: 4, invoices: 3, auditEvents: 3, users: 6, staff: 6 };
 }
 
 async function main() {

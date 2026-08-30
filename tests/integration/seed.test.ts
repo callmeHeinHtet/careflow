@@ -23,7 +23,7 @@ describe("CareFlow fictional seed", () => {
     await seedCareFlow(db);
     await seedCareFlow(db);
 
-    const [departments, patients, visits, medications, lots, invoices, auditEvents] =
+    const [departments, patients, visits, medications, lots, invoices, auditEvents, users, staff] =
       await Promise.all([
         db.department.count(),
         db.patient.count(),
@@ -32,9 +32,11 @@ describe("CareFlow fictional seed", () => {
         db.inventoryLot.count(),
         db.invoice.count(),
         db.auditEvent.count(),
+        db.user.count(),
+        db.staffProfile.count(),
       ]);
 
-    expect({ departments, patients, visits, medications, lots, invoices, auditEvents }).toEqual({
+    expect({ departments, patients, visits, medications, lots, invoices, auditEvents, users, staff }).toEqual({
       departments: 6,
       patients: 8,
       visits: 8,
@@ -42,7 +44,22 @@ describe("CareFlow fictional seed", () => {
       lots: 4,
       invoices: 3,
       auditEvents: 3,
+      users: 6,
+      staff: 6,
     });
+  });
+
+  it("creates one invited fictional staff member for every role", async () => {
+    await seedCareFlow(db);
+
+    const staff = await db.staffProfile.findMany({
+      include: { user: true },
+      orderBy: { role: "asc" },
+    });
+
+    expect(new Set(staff.map((profile) => profile.role)).size).toBe(6);
+    expect(staff.every((profile) => profile.user.email.endsWith("@careflow.test"))).toBe(true);
+    expect(staff.every((profile) => profile.user.status === "INVITED")).toBe(true);
   });
 
   it("contains only the documented fictional patient set", async () => {
