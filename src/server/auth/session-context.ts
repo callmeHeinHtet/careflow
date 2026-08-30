@@ -3,6 +3,8 @@ import { AccountStatus, EmploymentStatus } from "../../generated/prisma/client";
 import { getDb } from "../db/client";
 
 const SESSION_COOKIE_NAMES = ["__Secure-authjs.session-token", "authjs.session-token"];
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const IDLE_TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 
 export function readSessionToken(request: NextRequest): string | null {
   for (const baseName of SESSION_COOKIE_NAMES) {
@@ -47,11 +49,19 @@ export async function getActiveSessionContext(request: NextRequest, now = new Da
     !session ||
     session.expires.getTime() <= now.getTime() ||
     session.absoluteExpiresAt.getTime() <= now.getTime() ||
+    session.lastSeenAt.getTime() <= now.getTime() - IDLE_TIMEOUT_MS ||
     session.user.status !== AccountStatus.ACTIVE ||
     session.user.deletedAt ||
     session.user.staffProfile?.employmentStatus !== EmploymentStatus.ACTIVE
   ) {
     return null;
+  }
+
+  if (session.lastSeenAt.getTime() <= now.getTime() - IDLE_TOUCH_INTERVAL_MS) {
+    await getDb().session.updateMany({
+      where: { id: session.id, lastSeenAt: session.lastSeenAt },
+      data: { lastSeenAt: now },
+    });
   }
 
   return {

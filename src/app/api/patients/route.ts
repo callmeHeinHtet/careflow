@@ -1,4 +1,11 @@
+import type { NextRequest } from "next/server";
 import { z } from "zod";
+import {
+  AuthorizationError,
+  authorizationErrorResponse,
+  authorizeRequest,
+} from "../../../server/auth/authorize";
+import { Capability } from "../../../server/auth/permissions";
 import { getDb } from "../../../server/db/client";
 import {
   dataResponse,
@@ -21,11 +28,13 @@ export function parsePatientQuery(params: URLSearchParams) {
   });
 }
 
-export async function GET(request: Request): Promise<Response> {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
+    await authorizeRequest(request, Capability.PATIENT_READ);
     const input = parsePatientQuery(new URL(request.url).searchParams);
     return dataResponse(await listPatients(getDb(), input));
   } catch (error) {
+    if (error instanceof AuthorizationError) return authorizationErrorResponse(error);
     if (error instanceof z.ZodError) {
       return errorResponse("VALIDATION_FAILED", "Invalid patient query", 400);
     }

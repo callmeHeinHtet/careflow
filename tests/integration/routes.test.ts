@@ -1,15 +1,31 @@
+import { NextRequest } from "next/server";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { seedCareFlow } from "../../prisma/seed";
 import { GET as getDashboard } from "../../src/app/api/dashboard/route";
 import { GET as getPatients, parsePatientQuery } from "../../src/app/api/patients/route";
+import { AccountStatus } from "../../src/generated/prisma/client";
 import { disconnectDb } from "../../src/server/db/client";
 import { createTestDb, resetTestDb } from "../../src/server/db/reset-test-db";
 
 const db = createTestDb();
+const sessionToken = "route-test-session-token";
 
 beforeEach(async () => {
   await resetTestDb(db);
   await seedCareFlow(db);
+  const admin = await db.user.update({
+    where: { email: "admin@careflow.test" },
+    data: { status: AccountStatus.ACTIVE, mfaEnrolledAt: new Date() },
+  });
+  await db.session.create({
+    data: {
+      sessionToken,
+      userId: admin.id,
+      expires: new Date(Date.now() + 60 * 60 * 1000),
+      absoluteExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      mfaVerifiedAt: new Date(),
+    },
+  });
 });
 
 afterAll(async () => {
@@ -18,8 +34,24 @@ afterAll(async () => {
 });
 
 describe("database-backed read routes", () => {
+  function authenticatedRequest(path: string) {
+    return new NextRequest(`http://localhost${path}`, {
+      headers: { cookie: `authjs.session-token=${sessionToken}` },
+    });
+  }
+
+  it("rejects unauthenticated operational reads", async () => {
+    const [dashboard, patients] = await Promise.all([
+      getDashboard(new NextRequest("http://localhost/api/dashboard")),
+      getPatients(new NextRequest("http://localhost/api/patients")),
+    ]);
+
+    expect(dashboard.status).toBe(401);
+    expect(patients.status).toBe(401);
+  });
+
   it("returns a no-store dashboard envelope", async () => {
-    const response = await getDashboard();
+    const response = await getDashboard(authenticatedRequest("/api/dashboard"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -29,7 +61,7 @@ describe("database-backed read routes", () => {
 
   it("supports patient search and bounded pagination", async () => {
     const response = await getPatients(
-      new Request("http://localhost/api/patients?query=May&limit=3"),
+      authenticatedRequest("/api/patients?query=May&limit=3"),
     );
     const body = await response.json();
 
@@ -42,7 +74,7 @@ describe("database-backed read routes", () => {
 
   it("returns a stable validation error for malformed cursors", async () => {
     const response = await getPatients(
-      new Request("http://localhost/api/patients?cursor=not-a-uuid"),
+      authenticatedRequest("/api/patients?cursor=not-a-uuid"),
     );
 
     expect(response.status).toBe(400);
@@ -57,7 +89,7 @@ describe("database-backed read routes", () => {
     process.env.DATABASE_URL = "postgresql://careflow:secret@127.0.0.1:1/careflow_test";
 
     try {
-      const response = await getDashboard();
+      const response = await getDashboard(authenticatedRequest("/api/dashboard"));
       const body = await response.json();
 
       expect(response.status).toBe(500);
