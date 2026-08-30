@@ -1,0 +1,23 @@
+import type { AuditEntry, DemoState, Patient, Priority, Role } from "./types";
+
+const priorityRank: Record<Priority, number> = { critical: 0, urgent: 1, soon: 2, routine: 3 };
+const clone = (state: DemoState): DemoState => structuredClone(state);
+const find = (state: DemoState, id: string) => { const patient = state.patients.find((item) => item.id === id); if (!patient) throw new Error("Patient not found"); return patient; };
+const audit = (state: DemoState, actor: string, role: Role, action: string, patientId: string, details: string) => { state.audit.push(createAuditEntry({ actor, role, action, patientId, details })); };
+
+export function createAuditEntry(input: { actor: string; role: Role; action: string; patientId: string | null; details: string }): AuditEntry { return { ...input, id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, timestamp: new Date().toISOString() }; }
+export function orderQueue(patients: Patient[]) { return [...patients].sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority] || a.arrival.localeCompare(b.arrival)); }
+
+export function submitTriage(input: DemoState, data: { patientId: string; temperature: string; bloodPressure: string; heartRate: string; spo2: string; symptoms: string; notes: string; priority: Priority; actor: string }) {
+  const state = clone(input); const patient = find(state, data.patientId); if (!["waiting", "triage"].includes(patient.stage)) throw new Error("Patient is not in a triage stage");
+  patient.stage = "consultation"; patient.priority = data.priority; patient.symptoms = data.symptoms; patient.triageNotes = data.notes; patient.vitals = { temperature: data.temperature, bloodPressure: data.bloodPressure, heartRate: data.heartRate, spo2: data.spo2 }; audit(state, data.actor, "Nurse", "Triage recorded", patient.id, `${data.priority} priority; vitals captured`); return { state, patient, audit: state.audit };
+}
+export function completeConsultation(input: DemoState, data: { patientId: string; findings: string; diagnosis: string; prescriptions: { medicineId: string; quantity: number; directions: string }[]; labs: string[]; followUp: string; actor: string }) {
+  const state = clone(input); const patient = find(state, data.patientId); if (patient.stage !== "consultation") throw new Error("Patient is not in consultation stage");
+  patient.stage = data.prescriptions.length ? "pharmacy" : "billing"; patient.findings = data.findings; patient.diagnosis = data.diagnosis; patient.followUp = data.followUp; patient.labs = data.labs; patient.billing.labs = data.labs.length * 8000; patient.prescriptions = data.prescriptions.map((item) => ({ ...item, status: "ordered" as const })); patient.billing.medication = data.prescriptions.reduce((sum, item) => sum + (state.inventory.find((med) => med.id === item.medicineId)?.unitPrice ?? 0) * item.quantity, 0); audit(state, data.actor, "Doctor", "Completed consultation", patient.id, `${data.diagnosis}; ${data.prescriptions.length} prescription(s)`); return { state, patient };
+}
+export function dispensePrescription(input: DemoState, data: { patientId: string; medicineId: string; quantity: number; actor: string }) {
+  const state = clone(input); const patient = find(state, data.patientId); if (patient.stage !== "pharmacy") throw new Error("Patient is not in pharmacy stage"); const medicine = state.inventory.find((item) => item.id === data.medicineId); if (!medicine) throw new Error("Medicine not found"); if (patient.allergies.some((allergy) => medicine.name.toLowerCase().includes(allergy.toLowerCase()))) throw new Error("Allergy conflict: dispensing blocked"); if (data.quantity <= 0 || medicine.stock < data.quantity) throw new Error("Insufficient stock for requested quantity");
+  medicine.stock -= data.quantity; const prescription = patient.prescriptions.find((item) => item.medicineId === data.medicineId); if (!prescription) throw new Error("Prescription not found"); prescription.status = "dispensed"; patient.stage = "billing"; audit(state, data.actor, "Pharmacy", "Dispensed prescription", patient.id, `${medicine.name} × ${data.quantity}`); return { state, patient, inventory: state.inventory };
+}
+export function payBill(input: DemoState, data: { patientId: string; actor: string; method: string }) { const state = clone(input); const patient = find(state, data.patientId); if (patient.stage !== "billing") throw new Error("Invalid stage: patient is not ready for billing"); patient.stage = "discharged"; patient.billing.status = "paid"; audit(state, data.actor, "Cashier", "Payment received", patient.id, `${data.method} · ${patient.billing.consultation + patient.billing.labs + patient.billing.medication} MMK`); return { state, patient }; }

@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareFlow
 
-## Getting Started
+CareFlow is a portfolio-grade hospital operations workstation MVP. It demonstrates patient flow from registration through discharge across Reception, Nursing, Doctors, Pharmacy, Cashier, and Admin workflows.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. No credentials, database, API keys, or external services are required.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Persistent workstation shell with role switcher, patient search, responsive navigation, and reset control.
+- Overview KPIs, live queue, department load, safety alerts, and recent activity.
+- Patient registry and detail drawer with demographics, allergies, visit history, and the Registration → Triage → Consultation → Pharmacy → Billing → Discharged journey rail.
+- Queue priority ordering, triage capture, doctor-entered consultation, fictional lab requests, inventory-backed prescriptions, pharmacy stock/allergy guards, billing, and discharge.
+- Append-only audit timeline with actor, role, patient, timestamp, and details.
+- Typed client store persisted to `localStorage`; all records are explicitly fictional.
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
+`src/lib/types.ts` defines the domain model. `src/lib/seed.ts` owns fictional seed data. `src/lib/domain.ts` contains pure transition functions and validation guards. `src/app/page.tsx` is the client workstation composed of feature views and workflow dialogs; `src/app/globals.css` contains CareFlow design tokens and responsive rules.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Demo-data warning
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This is a demo environment with fictional records only. It is not a clinical system and makes no automated medical decisions. Do not enter real patient data.
 
-## Deploy on Vercel
+## Verification
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+npm run lint
+npm run build
+```
