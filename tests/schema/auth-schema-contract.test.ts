@@ -23,6 +23,7 @@ describe("CareFlow authentication schema", () => {
     expect(schema).toMatch(/model Session \{[\s\S]*lastSeenAt\s+DateTime/);
     expect(schema).toMatch(/model Session \{[\s\S]*absoluteExpiresAt\s+DateTime/);
     expect(schema).toMatch(/model Session \{[\s\S]*mfaVerifiedAt\s+DateTime\?/);
+    expect(schema).toMatch(/model MfaSecret \{[\s\S]*lastUsedCounter\s+Int\?/);
   });
 
   it("defines the six approved staff roles and account states", () => {
