@@ -8,6 +8,8 @@ describe("database configuration", () => {
 
     expect(development).toContain("/careflow?schema=public");
     expect(test).toContain("/careflow_test?schema=public");
+    expect(development).toContain("@127.0.0.1:5432");
+    expect(test).toContain("@127.0.0.1:5432");
   });
 
   it("keeps generated Prisma files out of Git while tracking safe examples", () => {
