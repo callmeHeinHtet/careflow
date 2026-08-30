@@ -1,6 +1,6 @@
 # CareFlow PostgreSQL Foundation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Replace CareFlow's browser-only seed as the canonical data source with a reproducible PostgreSQL 16 database, Prisma migrations, deterministic fictional seed data, tested repositories, and database-backed read APIs.
 
@@ -43,7 +43,7 @@
 - Modify: `package.json`
 - Modify: `package-lock.json`
 
-- [ ] **Step 1: Add a configuration smoke test**
+- [x] **Step 1: Add a configuration smoke test**
 
 Create `tests/config/database-config.test.ts`:
 
@@ -68,13 +68,13 @@ describe("database configuration", () => {
 });
 ```
 
-- [ ] **Step 2: Run the smoke test and confirm RED**
+- [x] **Step 2: Run the smoke test and confirm RED**
 
 Run: `npx vitest run tests/config/database-config.test.ts`
 
 Expected: FAIL because the environment examples and generated-client ignore rule do not exist.
 
-- [ ] **Step 3: Install pinned database dependencies**
+- [x] **Step 3: Install pinned database dependencies**
 
 Run:
 
@@ -83,7 +83,7 @@ npm install @prisma/client@7.10.0 @prisma/adapter-pg@7.10.0 pg@8.16.3 zod@4.1.5
 npm install --save-dev prisma@7.10.0 tsx@4.20.5 dotenv-cli@8.0.0 @types/pg@8.15.5
 ```
 
-- [ ] **Step 4: Add local infrastructure and scripts**
+- [x] **Step 4: Add local infrastructure and scripts**
 
 Create `compose.yaml` with PostgreSQL 16, health check, named volume, development database `careflow`, and test database creation through `POSTGRES_DB=careflow`. Tests use a separately created `careflow_test` database.
 
@@ -112,13 +112,13 @@ volumes:
 Create `.env.example`:
 
 ```dotenv
-DATABASE_URL=postgresql://careflow:careflow_dev@localhost:5432/careflow?schema=public
+DATABASE_URL=postgresql://careflow:careflow_dev@127.0.0.1:5432/careflow?schema=public
 ```
 
 Create `.env.test.example`:
 
 ```dotenv
-DATABASE_URL=postgresql://careflow:careflow_dev@localhost:5432/careflow_test?schema=public
+DATABASE_URL=postgresql://careflow:careflow_dev@127.0.0.1:5432/careflow_test?schema=public
 ```
 
 Create `prisma.config.ts`:
@@ -147,13 +147,13 @@ Add `/src/generated/prisma`, `!.env.example`, and `!.env.test.example` to `.giti
 }
 ```
 
-- [ ] **Step 5: Run the smoke test and confirm GREEN**
+- [x] **Step 5: Run the smoke test and confirm GREEN**
 
 Run: `npx vitest run tests/config/database-config.test.ts`
 
 Expected: 2 tests pass.
 
-- [ ] **Step 6: Commit tooling**
+- [x] **Step 6: Commit tooling**
 
 ```powershell
 git add compose.yaml .env.example .env.test.example prisma.config.ts .gitignore package.json package-lock.json tests/config/database-config.test.ts
@@ -166,7 +166,7 @@ git commit -m "build: add PostgreSQL and Prisma tooling"
 - Create: `prisma/schema.prisma`
 - Create: `tests/schema/schema-contract.test.ts`
 
-- [ ] **Step 1: Write the schema contract test**
+- [x] **Step 1: Write the schema contract test**
 
 The test reads `prisma/schema.prisma` and asserts the presence of the required operational models, PostgreSQL provider, visit version field, unique queue token, immutable transaction models, and critical indexes.
 
@@ -190,13 +190,13 @@ describe("CareFlow Prisma schema", () => {
 });
 ```
 
-- [ ] **Step 2: Run the contract test and confirm RED**
+- [x] **Step 2: Run the contract test and confirm RED**
 
 Run: `npx vitest run tests/schema/schema-contract.test.ts`
 
 Expected: FAIL because `prisma/schema.prisma` does not exist.
 
-- [ ] **Step 3: Create the complete Phase 1 schema**
+- [x] **Step 3: Create the complete Phase 1 schema**
 
 Create `prisma/schema.prisma` exactly as follows, then adjust only formatting produced by `prisma format`:
 
@@ -469,7 +469,7 @@ model AuditEvent {
 }
 ```
 
-- [ ] **Step 4: Validate and generate the client**
+- [x] **Step 4: Validate and generate the client**
 
 Run:
 
@@ -481,7 +481,7 @@ npx prisma generate
 
 Expected: each command exits 0 and the contract test passes.
 
-- [ ] **Step 5: Commit the schema**
+- [x] **Step 5: Commit the schema**
 
 ```powershell
 git add prisma/schema.prisma tests/schema/schema-contract.test.ts
@@ -496,16 +496,16 @@ git commit -m "feat: define CareFlow operational schema"
 - Create: `tests/integration/database.test.ts`
 - Create: `src/server/db/reset-test-db.ts`
 
-- [ ] **Step 1: Start PostgreSQL and create the test database**
+- [x] **Step 1: Start PostgreSQL and create the test database**
 
 Run:
 
 ```powershell
 docker compose up -d --wait postgres
-docker compose exec -T postgres psql -U careflow -d postgres -c "SELECT 'CREATE DATABASE careflow_test' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'careflow_test')\gexec"
+docker compose exec -T postgres createdb -U careflow careflow_test
 ```
 
-- [ ] **Step 2: Create local environment files from the safe contracts when absent**
+- [x] **Step 2: Create local environment files from the safe contracts when absent**
 
 Run only if `.env.local` does not exist:
 
@@ -514,23 +514,23 @@ Copy-Item .env.example .env.local
 Copy-Item .env.test.example .env.test
 ```
 
-- [ ] **Step 3: Generate the initial migration**
+- [x] **Step 3: Generate the initial migration**
 
 Run: `npx dotenv -e .env.local -- prisma migrate dev --name operational_foundation`
 
 Expected: migration applies to `careflow` and Prisma client generation succeeds.
 
-- [ ] **Step 4: Write the failing database integration test**
+- [x] **Step 4: Write the failing database integration test**
 
 The test connects with `DATABASE_URL` loaded from `.env.test`, verifies the PostgreSQL major version is 16, inserts a department/patient/visit, rejects duplicate queue tokens, and verifies deleting a patient with a visit is restricted.
 
-- [ ] **Step 5: Run the integration test and confirm RED before applying the test migration**
+- [x] **Step 5: Run the integration test and confirm RED before applying the test migration**
 
 Run: `npm run test:integration -- tests/integration/database.test.ts`
 
 Expected: FAIL because the test database has no CareFlow tables.
 
-- [ ] **Step 6: Apply migrations to the test database and confirm GREEN**
+- [x] **Step 6: Apply migrations to the test database and confirm GREEN**
 
 Run:
 
@@ -541,7 +541,7 @@ npm run test:integration -- tests/integration/database.test.ts
 
 Expected: integration test passes. The integration script and migration command both load `.env.test`, so neither can target the development database accidentally.
 
-- [ ] **Step 7: Commit migration and integration harness**
+- [x] **Step 7: Commit migration and integration harness**
 
 ```powershell
 git add prisma/migrations vitest.integration.config.mjs tests/integration/database.test.ts src/server/db/reset-test-db.ts
@@ -557,11 +557,11 @@ git commit -m "feat: add initial PostgreSQL migration"
 - Create: `tests/server/env.test.ts`
 - Create: `tests/integration/health-route.test.ts`
 
-- [ ] **Step 1: Write failing environment and health tests**
+- [x] **Step 1: Write failing environment and health tests**
 
 `tests/server/env.test.ts` asserts `readServerEnv({})` returns a structured missing-variable error and accepts a valid PostgreSQL URL. `tests/integration/health-route.test.ts` imports `GET`, calls it against the running database, and expects `{ status: "ok", database: "reachable" }` with HTTP 200.
 
-- [ ] **Step 2: Run both tests and confirm RED**
+- [x] **Step 2: Run both tests and confirm RED**
 
 Run:
 
@@ -572,7 +572,7 @@ npm run test:integration -- tests/integration/health-route.test.ts
 
 Expected: FAIL because the modules do not exist.
 
-- [ ] **Step 3: Implement validated lazy database construction**
+- [x] **Step 3: Implement validated lazy database construction**
 
 `src/server/env.ts` uses Zod to validate `DATABASE_URL` only when server data access is invoked. `src/server/db/client.ts` exposes `getDb()` and caches a `PrismaClient` in development without constructing it at module import time:
 
@@ -594,13 +594,13 @@ export function getDb() {
 
 The health route performs `SELECT 1`, returns HTTP 200 when reachable, and HTTP 503 with `{ status: "degraded", database: "unreachable" }` on connection failure. It never returns exception messages or configuration values.
 
-- [ ] **Step 4: Run tests and confirm GREEN**
+- [x] **Step 4: Run tests and confirm GREEN**
 
 Run the two commands from Step 2.
 
 Expected: all environment and health tests pass.
 
-- [ ] **Step 5: Commit database runtime**
+- [x] **Step 5: Commit database runtime**
 
 ```powershell
 git add src/server/env.ts src/server/db/client.ts src/app/api/health/route.ts tests/server/env.test.ts tests/integration/health-route.test.ts
@@ -614,7 +614,7 @@ git commit -m "feat: add validated database runtime"
 - Create: `tests/integration/seed.test.ts`
 - Modify: `README.md`
 
-- [ ] **Step 1: Write the failing seed integrity test**
+- [x] **Step 1: Write the failing seed integrity test**
 
 The test resets the test database, runs the seed function twice, and asserts both runs produce exactly:
 
@@ -626,19 +626,19 @@ The test resets the test database, runs the seed function twice, and asserts bot
 - 3 baseline audit events;
 - no names, emails, or phone numbers outside the documented fictional seed set.
 
-- [ ] **Step 2: Run the seed test and confirm RED**
+- [x] **Step 2: Run the seed test and confirm RED**
 
 Run: `npm run test:integration -- tests/integration/seed.test.ts`
 
 Expected: FAIL because the seed module does not exist.
 
-- [ ] **Step 3: Implement an idempotent seed transaction**
+- [x] **Step 3: Implement an idempotent seed transaction**
 
 Export `seedCareFlow(db)` from `prisma/seed.ts`. Use stable UUIDs and upserts for reference data, delete/recreate only known demo records in dependency order, and wrap the operation in a transaction. Keep the eight existing fictional patients and current queue tokens so the UI remains recognizable.
 
 The executable footer creates a database client, calls `seedCareFlow`, logs only record counts, and disconnects in `finally`.
 
-- [ ] **Step 4: Run seed and integrity tests**
+- [x] **Step 4: Run seed and integrity tests**
 
 Run:
 
@@ -649,11 +649,11 @@ npm run test:integration -- tests/integration/seed.test.ts
 
 Expected: seed succeeds and the integration test passes on repeated runs.
 
-- [ ] **Step 5: Document database startup and seed commands**
+- [x] **Step 5: Document database startup and seed commands**
 
 Update README with exact commands: install, copy `.env.example`, `db:start`, `db:migrate`, `db:seed`, `dev`, `test`, and `test:integration`. Retain the fictional-data warning.
 
-- [ ] **Step 6: Commit deterministic seed**
+- [x] **Step 6: Commit deterministic seed**
 
 ```powershell
 git add prisma/seed.ts tests/integration/seed.test.ts README.md
@@ -668,7 +668,7 @@ git commit -m "feat: seed fictional CareFlow operations data"
 - Create: `src/server/serializers/patient.ts`
 - Create: `tests/integration/repositories.test.ts`
 
-- [ ] **Step 1: Write failing repository integration tests**
+- [x] **Step 1: Write failing repository integration tests**
 
 Tests seed the database and assert:
 
@@ -678,13 +678,13 @@ Tests seed the database and assert:
 - soft-deleted patients never appear;
 - serialized decimal values become numbers and dates become ISO strings.
 
-- [ ] **Step 2: Run repository tests and confirm RED**
+- [x] **Step 2: Run repository tests and confirm RED**
 
 Run: `npm run test:integration -- tests/integration/repositories.test.ts`
 
 Expected: FAIL because repositories do not exist.
 
-- [ ] **Step 3: Implement focused read repositories**
+- [x] **Step 3: Implement focused read repositories**
 
 Expose:
 
@@ -696,13 +696,13 @@ export async function getPatientById(db: PrismaClient, id: string): Promise<Pati
 
 Use Prisma predicates, relation selection, cursor pagination, and aggregate queries. Clamp limit to `1..25`. Do not expose Prisma records directly from the repository boundary.
 
-- [ ] **Step 4: Run repository tests and confirm GREEN**
+- [x] **Step 4: Run repository tests and confirm GREEN**
 
 Run: `npm run test:integration -- tests/integration/repositories.test.ts`
 
 Expected: all repository tests pass.
 
-- [ ] **Step 5: Commit repositories**
+- [x] **Step 5: Commit repositories**
 
 ```powershell
 git add src/server/repositories src/server/serializers tests/integration/repositories.test.ts
@@ -717,7 +717,7 @@ git commit -m "feat: add database-backed operations repositories"
 - Create: `src/app/api/patients/route.ts`
 - Create: `tests/integration/routes.test.ts`
 
-- [ ] **Step 1: Write failing route contract tests**
+- [x] **Step 1: Write failing route contract tests**
 
 Call route handlers directly with real `Request` objects and assert:
 
@@ -727,13 +727,13 @@ Call route handlers directly with real `Request` objects and assert:
 - malformed cursor returns HTTP 400 with `{ error: { code: "VALIDATION_FAILED", message: "Invalid patient query" } }`;
 - unexpected repository errors return a generic HTTP 500 response without database details.
 
-- [ ] **Step 2: Run route tests and confirm RED**
+- [x] **Step 2: Run route tests and confirm RED**
 
 Run: `npm run test:integration -- tests/integration/routes.test.ts`
 
 Expected: FAIL because route modules do not exist.
 
-- [ ] **Step 3: Implement response helper and route handlers**
+- [x] **Step 3: Implement response helper and route handlers**
 
 Use Zod query parsing and the repository functions. All responses follow:
 
@@ -744,13 +744,13 @@ type ApiFailure = { error: { code: string; message: string; fields?: Record<stri
 
 Set `Cache-Control: no-store` on patient and dashboard responses. Log a generated correlation ID for unexpected failures without patient data and return it as `X-Correlation-Id`.
 
-- [ ] **Step 4: Run route tests and confirm GREEN**
+- [x] **Step 4: Run route tests and confirm GREEN**
 
 Run: `npm run test:integration -- tests/integration/routes.test.ts`
 
 Expected: all route contract tests pass.
 
-- [ ] **Step 5: Commit read APIs**
+- [x] **Step 5: Commit read APIs**
 
 ```powershell
 git add src/server/http src/app/api/dashboard src/app/api/patients tests/integration/routes.test.ts
@@ -763,14 +763,14 @@ git commit -m "feat: add database-backed CareFlow read APIs"
 - Modify: `README.md`
 - Modify: `docs/superpowers/plans/2026-08-30-careflow-postgres-foundation.md`
 
-- [ ] **Step 1: Verify a fresh database lifecycle**
+- [x] **Step 1: Verify a fresh database lifecycle**
 
 Run:
 
 ```powershell
 docker compose down -v
 docker compose up -d --wait postgres
-docker compose exec -T postgres psql -U careflow -d postgres -c "SELECT 'CREATE DATABASE careflow_test' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'careflow_test')\gexec"
+docker compose exec -T postgres createdb -U careflow careflow_test
 Copy-Item .env.example .env.local -Force
 Copy-Item .env.test.example .env.test -Force
 npx dotenv -e .env.local -- prisma migrate deploy
@@ -780,7 +780,7 @@ npm run db:seed
 
 Expected: PostgreSQL starts healthy, the same committed migrations apply to development and test databases, and seed reports deterministic counts.
 
-- [ ] **Step 2: Run all verification commands**
+- [x] **Step 2: Run all verification commands**
 
 Run:
 
@@ -793,15 +793,15 @@ npm run build
 
 Expected: all unit/config tests, integration tests, lint, TypeScript, and Next.js production build pass with no warnings caused by CareFlow.
 
-- [ ] **Step 3: Verify API behavior through the running server**
+- [x] **Step 3: Verify API behavior through the running server**
 
 Start `npm run dev`, then request `/api/health`, `/api/dashboard`, `/api/patients?limit=3`, and `/api/patients?query=May`. Confirm HTTP status, no-store headers, bounded results, and absence of secrets or raw Prisma objects.
 
-- [ ] **Step 4: Update the README architecture section**
+- [x] **Step 4: Update the README architecture section**
 
 Describe PostgreSQL as canonical state, Prisma migrations, fictional seed data, API endpoints, test database isolation, and the fact that authentication arrives in Phase 2 before production deployment.
 
-- [ ] **Step 5: Mark every completed checkbox in this plan and commit**
+- [x] **Step 5: Mark every completed checkbox in this plan and commit**
 
 ```powershell
 git add README.md docs/superpowers/plans/2026-08-30-careflow-postgres-foundation.md
