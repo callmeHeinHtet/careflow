@@ -12,6 +12,19 @@ describe("database configuration", () => {
     expect(test).toContain("@127.0.0.1:5432");
   });
 
+  it("documents local SMTP and non-placeholder security variables", () => {
+    const development = readFileSync(".env.example", "utf8");
+    const compose = readFileSync("compose.yaml", "utf8");
+
+    expect(development).toContain("SMTP_HOST=127.0.0.1");
+    expect(development).toContain("SMTP_PORT=1025");
+    expect(development).toContain("AUTH_SECRET=");
+    expect(development).toContain("MFA_ENCRYPTION_KEY=");
+    expect(development).toContain("RECOVERY_CODE_PEPPER=");
+    expect(compose).toContain("mailpit:");
+    expect(compose).toContain('"8025:8025"');
+  });
+
   it("keeps generated Prisma files out of Git while tracking safe examples", () => {
     const ignore = readFileSync(".gitignore", "utf8");
 
