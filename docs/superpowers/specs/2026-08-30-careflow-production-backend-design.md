@@ -41,11 +41,11 @@ Success means:
 ### 2.3 Authentication
 
 - Auth.js provides the session framework and route integration.
-- Authentication uses invite-only email-and-password staff accounts; there is no public sign-up.
-- Passwords are hashed with Argon2id using server-side configuration.
+- Authentication uses invite-only passwordless email staff accounts; there is no public sign-up.
+- Auth.js sends single-use magic links through SMTP only after confirming the address belongs to an active invited staff member.
 - Sessions are database-backed, revocable, use secure cookies in production, and have absolute and idle expiry.
-- Administrators create staff accounts with a temporary password. The user must replace it at first sign-in.
-- Repeated failed sign-ins trigger a time-bound account lock. Successful sign-in resets the failure counter.
+- Administrators invite staff accounts by email. Local development routes mail to Mailpit; production accepts any standard SMTP provider through environment variables.
+- Authentication endpoints are rate-limited and return non-enumerating responses for unknown or inactive addresses.
 - TOTP two-factor authentication is required after enrollment. Recovery codes are one-time values stored only as hashes.
 - Authentication secrets, encryption keys, and database credentials exist only in environment variables and are never committed.
 
@@ -82,7 +82,7 @@ Limited audit access means events related to the staff member's permitted workfl
 
 ### 3.1 Identity and organization
 
-- `User`: Auth.js identity fields, status, password hash, failed attempts, lock timestamp, first-login flag, MFA enrollment state, timestamps.
+- `User`: Auth.js identity fields, account status, MFA enrollment state, timestamps, and soft-deactivation metadata.
 - `Account`, `Session`, and `VerificationToken`: Auth.js adapter records.
 - `StaffProfile`: user-facing name, employee number, role, department, employment status.
 - `MfaSecret`: encrypted TOTP secret and enrollment timestamp.
@@ -189,7 +189,7 @@ Pagination is cursor-based for patients, visits, inventory movements, and audit 
 - Content Security Policy and standard security headers.
 - Request size limits and strict JSON content types.
 - Rate limiting for authentication and high-risk mutations uses PostgreSQL-backed counters and row-level locking initially, keeping limits shared across application instances without adding another provider. The store remains replaceable if traffic later warrants a dedicated limiter.
-- Password policy checks without logging submitted credentials.
+- Magic-link requests never reveal whether an address is invited and never log login tokens.
 - Encrypted MFA secrets with key rotation support.
 - Parameterized database access through Prisma.
 - Least-privilege production database credentials; migration credentials are separate from runtime credentials where the host supports it.
@@ -207,7 +207,7 @@ This security posture supports a credible production-oriented portfolio applicat
 - workflow transition policy;
 - invoice calculation;
 - stock calculation and insufficient-stock handling;
-- password and recovery-code helpers;
+- email-login policy and recovery-code helpers;
 - error translation.
 
 ### 9.2 Integration tests
@@ -216,7 +216,7 @@ Integration tests use a disposable PostgreSQL database and real Prisma queries. 
 
 - migrations and seed integrity;
 - authentication and session revocation;
-- account lockout and first-login password replacement;
+- invite-only email login and session revocation;
 - MFA enrollment, verification, and recovery-code consumption;
 - role denial at each protected boundary;
 - concurrent visit version conflicts;
@@ -254,7 +254,7 @@ Generated clients, environment files, database volumes, and test artifacts are i
 ## 11. Delivery Sequence
 
 1. Establish PostgreSQL, Prisma, migrations, and seed data.
-2. Add Auth.js, credentials, database sessions, account controls, and MFA.
+2. Add Auth.js, invite-only email login, database sessions, account controls, and MFA.
 3. Build shared authorization, validation, error, and audit infrastructure.
 4. Implement repositories and transactional workflow services test-first.
 5. Add authenticated API routes.
