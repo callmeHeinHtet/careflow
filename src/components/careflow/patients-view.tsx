@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight, Download, Plus } from "lucide-react";
 import type { Patient } from "../../lib/types";
 import { Masthead, PriorityBadge } from "./ui";
 
 type PatientFilter = "all" | "active" | "review";
 
-export function PatientsView({ patients, query, onSelect }: { patients: Patient[]; query: string; onSelect: (patient: Patient) => void }) {
+export function PatientsView({ patients, query, onSelect, onRegister, canRegister }: { patients: Patient[]; query: string; onSelect: (patient: Patient) => void; onRegister: () => void; canRegister: boolean }) {
   const [filter, setFilter] = useState<PatientFilter>("all");
   const filtered = useMemo(() => patients.filter((patient) => {
     if (filter === "active") return patient.stage !== "discharged";
@@ -27,7 +27,7 @@ export function PatientsView({ patients, query, onSelect }: { patients: Patient[
   };
 
   return <>
-    <Masthead title="Patients" detail={`${filtered.length} fictional records · select a patient to inspect their journey.`} action={<button className="secondary-button" onClick={exportList}><Download size={16} />Export CSV</button>} />
+    <Masthead title="Patients" detail={`${filtered.length} records · select a patient to inspect their journey.`} action={<div className="row-actions"><button className="secondary-button" onClick={exportList}><Download size={16} />Export CSV</button>{canRegister && <button className="primary-button" onClick={onRegister}><Plus size={16} />Add patient</button>}</div>} />
     <div className="filter-bar" role="group" aria-label="Filter patients">
       <span className="filter-label">Showing</span>
       <button className={`filter-chip ${filter === "all" ? "active" : ""}`} aria-pressed={filter === "all"} onClick={() => setFilter("all")}>All patients <span>{patients.length}</span></button>

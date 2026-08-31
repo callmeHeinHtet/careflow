@@ -191,6 +191,8 @@ a { color: inherit; }
 .queue-table-row:last-child { border-bottom: 0; }
 .queue-table-row:hover { background: var(--surface-tint); }
 .row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+.priority-editor { display: flex; align-items: center; gap: 6px; }
+.priority-editor select { min-width: 94px; height: 34px; padding: 0 28px 0 9px; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--surface); color: var(--ink-soft); font-size: 10px; font-weight: 650; }
 .workspace-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .75fr); gap: 18px; }
 .surface-heading { padding: 0 17px; }
 .surface-heading > span { color: var(--steel); font-size: 10px; }

@@ -6,6 +6,11 @@ const patient = (data: Partial<DemoState["patients"][number]> & Pick<DemoState["
 
 export function createDemoState(): DemoState {
   return {
+    generatedAt: new Date().toISOString(),
+    labServices: [],
+    services: [],
+    departments: [],
+    staff: [],
     patients: [
       patient({ id: "p-1001", queueNumber: "Q-018", name: "May Thiri Aung", age: 29, sex: "F", stage: "waiting", priority: "urgent", department: "General medicine", symptoms: "Fever and fatigue", arrival: "08:12", allergies: ["Penicillin"] }),
       patient({ id: "p-1002", queueNumber: "Q-019", name: "Ko Min Htet", age: 42, sex: "M", stage: "triage", priority: "soon", department: "General medicine", symptoms: "Persistent cough", arrival: "08:24", allergies: ["Amoxicillin"] }),
