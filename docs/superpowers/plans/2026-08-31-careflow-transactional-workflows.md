@@ -22,7 +22,7 @@
 - Reject replayed idempotency keys with different payloads.
 - Add `POST /api/patients` and `GET|PATCH /api/patients/:id` with capability enforcement.
 
-## Task 3: Visit reads, priority, and triage
+## Task 3: Visit reads, priority, and triage — Complete
 
 - Add paginated visit list/detail repositories.
 - Add versioned priority and triage services.
