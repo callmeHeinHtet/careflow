@@ -4,9 +4,11 @@
 
 **Goal:** Add production-oriented invite-only passwordless staff authentication, revocable database sessions, TOTP MFA, recovery codes, and role authorization to the PostgreSQL-backed CareFlow application.
 
+**Status:** Complete and verified locally on 2026-08-31.
+
 **Architecture:** Auth.js owns email verification tokens, secure cookies, and database sessions through the Prisma adapter. CareFlow owns invitation policy, account activation, MFA assurance, and permissions. SMTP is provider-neutral; Docker Mailpit captures local mail. `src/proxy.ts` performs optimistic page redirects only, while route handlers and repositories call the server authorization layer.
 
-**Stack:** Next.js 16 App Router, Auth.js v5, Prisma 7/PostgreSQL, Nodemailer/SMTP, OTPAuth, Node AES-256-GCM and scrypt, Zod 4, Vitest 4.
+**Stack:** Next.js 16 App Router, Auth.js v5, Prisma 7/PostgreSQL, Nodemailer/SMTP, OTPAuth, Node AES-256-GCM and HMAC-SHA-256, Zod 4, Vitest 4.
 
 ## Task 1: Install and configure auth infrastructure
 
@@ -123,3 +125,11 @@
 5. Review the diff for leaked secrets, unsafe logging, public operational routes, and generated files.
 6. Mark this plan complete and commit Phase 2 in small, reviewable commits. Do not push without explicit user instruction.
 
+## Completion record
+
+- Tasks 1–6 were implemented in focused commits with red-green tests.
+- Auth.js email login was exercised against Docker Mailpit with both invited and unknown addresses.
+- TOTP enrollment, recovery-code issuance, protected page entry, and responsive layouts were exercised through a real browser.
+- Dashboard and patient APIs reject missing or MFA-incomplete database sessions; `/api/health` remains public.
+- A clean project-scoped PostgreSQL volume was migrated and seeded from committed files before final completion.
+- Unit, integration, lint, production build, and dependency-audit checks all passed at completion.
