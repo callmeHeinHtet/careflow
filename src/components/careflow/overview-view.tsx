@@ -15,17 +15,18 @@ import { stageLabel } from "./constants";
 export function OverviewView({ data, queue, onView, onSelect }: { data: DemoState; queue: Patient[]; onView: (view: "queue" | "pharmacy" | "audit") => void; onSelect: (patient: Patient) => void }) {
   const seen = data.patients.filter((patient) => ["pharmacy", "billing", "discharged"].includes(patient.stage)).length;
   const lowStock = data.inventory.filter((medicine) => medicine.stock <= medicine.reorderAt).length;
+  const priorityCases = data.patients.filter((patient) => ["urgent", "critical"].includes(patient.priority) && patient.stage !== "discharged").length;
   const departmentLoad = data.departments.map((department) => [department.name, data.patients.filter((patient) => patient.department === department.name && patient.stage !== "discharged").length, department.capacity] as const);
   const metrics = [
     { label: "Total patients", value: data.patients.length, note: "Today", Icon: UsersRound },
     { label: "Waiting now", value: queue.length, note: "In queue", Icon: UserRound },
     { label: "Seen today", value: seen, note: "Completed visits", Icon: CheckCircle2 },
-    { label: "Average wait", value: "14 min", note: "Current shift", Icon: Clock3 },
+    { label: "Priority cases", value: priorityCases, note: "Urgent or critical", Icon: Clock3 },
   ];
 
   return <>
     <section className="dashboard-heading">
-      <div><h1>Operations overview</h1><p>30 August 2026, Sunday <span /> Day shift · 07:00–13:00</p></div>
+      <div><h1>Operations overview</h1><p>{new Intl.DateTimeFormat("en-GB", { dateStyle: "full" }).format(new Date(data.generatedAt))} <span /> Day shift · 07:00–13:00</p></div>
       <button className="secondary-button" onClick={() => onView("audit")}>View activity <ArrowUpRight size={14} /></button>
     </section>
 

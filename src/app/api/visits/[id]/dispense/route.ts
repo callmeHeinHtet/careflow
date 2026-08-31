@@ -20,6 +20,7 @@ import {
 } from "../../../../../server/http/mutation-response";
 import { dispensePrescription } from "../../../../../server/services/fulfillment-service";
 import { dispenseSchema } from "../../../../../server/validation/fulfillment";
+import { enforceMutationRateLimit } from "../../../../../server/security/rate-limit";
 
 type VisitRouteContext = { params: Promise<{ id: string }> };
 const idSchema = z.string().uuid();
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest, context: VisitRouteContext): Pr
   try {
     const session = await authorizeRequest(request, Capability.INVENTORY_DISPENSE);
     enforceSameOrigin(request);
+    await enforceMutationRateLimit(request, session.userId);
     const id = idSchema.parse((await context.params).id);
     const input = await parseMutationJson(request, dispenseSchema);
     const result = await dispensePrescription(

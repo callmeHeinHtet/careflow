@@ -1,5 +1,6 @@
 import type { PrismaClient } from "../../generated/prisma/client";
 import { findEligibleStaff } from "./invite-policy";
+import { enforceRateLimit } from "../security/rate-limit";
 
 type SignInMailTransport = {
   sendMail(message: {
@@ -21,6 +22,12 @@ export async function sendCareFlowSignInEmail(
   transport: SignInMailTransport,
   request: SignInMailRequest,
 ): Promise<void> {
+  await enforceRateLimit(db, {
+    scope: "sign-in",
+    identifier: request.identifier,
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
   const staff = await findEligibleStaff(db, request.identifier);
   if (!staff) return;
 

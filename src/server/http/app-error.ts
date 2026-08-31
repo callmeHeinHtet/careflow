@@ -15,6 +15,7 @@ export type AppErrorCode =
   | "CONFLICT"
   | "ALLERGY_CONFLICT"
   | "INSUFFICIENT_STOCK"
+  | "RATE_LIMITED"
   | "INTERNAL_ERROR";
 
 const privateHeaders = { "Cache-Control": "no-store" };
@@ -33,6 +34,10 @@ export class AppError extends Error {
 
 export function appErrorResponse(error: unknown, correlationId = randomUUID()): Response {
   if (error instanceof AppError) {
+    const responseHeaders = new Headers({ ...privateHeaders, "X-Correlation-Id": correlationId });
+    if (error.code === "RATE_LIMITED" && typeof error.details?.retryAfterSeconds === "number") {
+      responseHeaders.set("Retry-After", String(error.details.retryAfterSeconds));
+    }
     return Response.json(
       {
         error: {
@@ -44,7 +49,7 @@ export function appErrorResponse(error: unknown, correlationId = randomUUID()): 
       },
       {
         status: error.status,
-        headers: { ...privateHeaders, "X-Correlation-Id": correlationId },
+        headers: responseHeaders,
       },
     );
   }
@@ -52,6 +57,7 @@ export function appErrorResponse(error: unknown, correlationId = randomUUID()): 
   console.error("CareFlow request failed", {
     correlationId,
     errorType: error instanceof Error ? error.name : "UnknownError",
+    ...((error as { code?: unknown } | null)?.code && typeof (error as { code?: unknown }).code === "string" ? { errorCode: (error as { code: string }).code } : {}),
   });
   return Response.json(
     {

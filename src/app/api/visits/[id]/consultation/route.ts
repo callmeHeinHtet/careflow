@@ -20,6 +20,7 @@ import {
 } from "../../../../../server/http/mutation-response";
 import { completeConsultation } from "../../../../../server/services/consultation-service";
 import { consultationSchema } from "../../../../../server/validation/consultation";
+import { enforceMutationRateLimit } from "../../../../../server/security/rate-limit";
 
 type VisitRouteContext = { params: Promise<{ id: string }> };
 const idSchema = z.string().uuid();
@@ -32,6 +33,7 @@ export async function POST(
   try {
     const session = await authorizeRequest(request, Capability.CONSULTATION_WRITE);
     enforceSameOrigin(request);
+    await enforceMutationRateLimit(request, session.userId);
     const id = idSchema.parse((await context.params).id);
     const input = await parseMutationJson(request, consultationSchema);
     const result = await completeConsultation(

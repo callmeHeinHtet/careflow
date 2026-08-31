@@ -6,6 +6,7 @@ const patient = (data: Partial<DemoState["patients"][number]> & Pick<DemoState["
 
 export function createDemoState(): DemoState {
   return {
+    generatedAt: new Date().toISOString(),
     labServices: [],
     services: [],
     departments: [],

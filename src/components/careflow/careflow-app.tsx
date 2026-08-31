@@ -32,6 +32,7 @@ export function CareFlowApp({ role, displayName, initialData }: { role: Role; di
   const active = selectedId ? data.patients.find((patient) => patient.id === selectedId) ?? null : null;
   const can = (roles: Role[]) => roles.includes(role) || role === "Admin";
   const total = (patient: Patient) => patient.billing.consultation + patient.billing.labs + patient.billing.medication;
+  const dateLabel = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", weekday: "short" }).format(new Date(data.generatedAt));
 
   const refresh = async () => {
     const response = await fetch("/api/workspace", { cache: "no-store" });
@@ -98,7 +99,7 @@ export function CareFlowApp({ role, displayName, initialData }: { role: Role; di
                   ? <AuditView data={data} />
                   : <ReferenceSectionView view={view as "appointments" | "services" | "analytics" | "users" | "departments" | "settings"} data={data} />;
 
-  return <AppShell view={view} setView={setView} role={role} displayName={displayName} query={query} setQuery={setQuery} mobileNav={mobileNav} setMobileNav={setMobileNav} queueCount={queue.length} patients={data.patients} notice={notice}>
+  return <AppShell view={view} setView={setView} role={role} displayName={displayName} dateLabel={dateLabel} query={query} setQuery={setQuery} mobileNav={mobileNav} setMobileNav={setMobileNav} queueCount={queue.length} patients={data.patients} notice={notice}>
     {content}
     {active && !triageOpen && !consultOpen && !editOpen && <PatientDrawer patient={active} onClose={() => setSelectedId(null)} onEdit={() => setEditOpen(true)} onTriage={() => setTriageOpen(true)} onConsult={() => setConsultOpen(true)} onView={setView} can={can} />}
     {registrationOpen && <PatientRegistrationDialog departments={data.departments} busy={busy} onClose={() => setRegistrationOpen(false)} onSave={(form) => void mutate("POST", "/api/patients", form, `${form.firstName} ${form.lastName} registered`)} />}

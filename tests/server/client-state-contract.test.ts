@@ -35,4 +35,13 @@ describe("client state boundary", () => {
     expect(repositorySource).toContain("staff:");
     expect(repositorySource).toContain("services:");
   });
+
+  it("uses the server snapshot time instead of hard-coded dashboard dates", () => {
+    const shell = readFileSync("src/components/careflow/app-shell.tsx", "utf8");
+    const overview = readFileSync("src/components/careflow/overview-view.tsx", "utf8");
+    const repository = readFileSync("src/server/repositories/workspace-repository.ts", "utf8");
+    expect(shell).not.toContain("31 Aug 2026");
+    expect(overview).not.toContain("30 August 2026");
+    expect(repository).toContain("generatedAt:");
+  });
 });

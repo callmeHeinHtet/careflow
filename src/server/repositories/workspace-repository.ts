@@ -41,6 +41,7 @@ export async function getWorkspaceSnapshot(
   ]);
 
   return {
+    generatedAt: new Date().toISOString(),
     patients: visits.items.map((visit) => {
       const lines = visit.invoice?.lines ?? [];
       const lineTotal = (type: "CONSULTATION" | "LAB" | "MEDICATION") =>

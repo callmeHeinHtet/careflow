@@ -24,4 +24,4 @@ export type InventoryItem = { id: string; name: string; form: string; stock: num
 export type DepartmentOption = { id: string; code: string; name: string; capacity: number; active: boolean };
 export type ClinicalServiceOption = { id: string; code: string; name: string; type: "CONSULTATION" | "LAB"; unitPrice: number; departmentId: string | null; department: string | null };
 export type StaffMember = { id: string; employeeNumber: string; displayName: string; role: Role; status: "ACTIVE" | "ON_LEAVE" | "ENDED"; department: string | null };
-export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; services: ClinicalServiceOption[]; departments: DepartmentOption[]; staff: StaffMember[]; audit: AuditEntry[] };
+export type DemoState = { generatedAt: string; patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; services: ClinicalServiceOption[]; departments: DepartmentOption[]; staff: StaffMember[]; audit: AuditEntry[] };

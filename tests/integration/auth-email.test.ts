@@ -54,4 +54,16 @@ describe("CareFlow sign-in email delivery", () => {
     expect(sendMail.mock.calls[0][0]).not.toHaveProperty("raw");
     expect(sendMail.mock.calls[0][0]).not.toHaveProperty("html");
   });
+
+  it("throttles repeated sign-in link requests using shared database state", async () => {
+    const request = {
+      identifier: "unknown@careflow.test",
+      url: "https://careflow.test/api/auth/callback/nodemailer?token=secret",
+      from: "CareFlow <no-reply@careflow.test>",
+    };
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await sendCareFlowSignInEmail(db, { sendMail: vi.fn() }, request);
+    }
+    await expect(sendCareFlowSignInEmail(db, { sendMail: vi.fn() }, request)).rejects.toMatchObject({ code: "RATE_LIMITED", status: 429 });
+  });
 });

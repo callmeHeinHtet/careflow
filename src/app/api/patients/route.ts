@@ -23,6 +23,7 @@ import { mutationResponse, requestIpAddress } from "../../../server/http/mutatio
 import { listPatients } from "../../../server/repositories/patient-repository";
 import { registerPatient } from "../../../server/services/patient-service";
 import { patientRegistrationSchema } from "../../../server/validation/patient-mutations";
+import { enforceMutationRateLimit } from "../../../server/security/rate-limit";
 
 const patientQuerySchema = z.object({
   query: z.string().trim().max(100).optional(),
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     const session = await authorizeRequest(request, Capability.PATIENT_REGISTER);
     enforceSameOrigin(request);
+    await enforceMutationRateLimit(request, session.userId);
     const idempotencyKey = parseIdempotencyKey(request);
     const input = await parseMutationJson(request, patientRegistrationSchema);
     const result = await registerPatient(

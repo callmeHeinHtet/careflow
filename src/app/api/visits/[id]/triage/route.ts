@@ -20,6 +20,7 @@ import {
 } from "../../../../../server/http/mutation-response";
 import { recordTriage } from "../../../../../server/services/visit-service";
 import { triageSchema } from "../../../../../server/validation/visit-mutations";
+import { enforceMutationRateLimit } from "../../../../../server/security/rate-limit";
 
 type VisitRouteContext = { params: Promise<{ id: string }> };
 const idSchema = z.string().uuid();
@@ -32,6 +33,7 @@ export async function POST(
   try {
     const session = await authorizeRequest(request, Capability.TRIAGE_WRITE);
     enforceSameOrigin(request);
+    await enforceMutationRateLimit(request, session.userId);
     const id = idSchema.parse((await context.params).id);
     const input = await parseMutationJson(request, triageSchema);
     const result = await recordTriage(

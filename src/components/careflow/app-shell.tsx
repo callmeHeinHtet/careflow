@@ -5,9 +5,9 @@ import { signOut } from "next-auth/react";
 import type { Patient, Role } from "../../lib/types";
 import { navItems, type ViewId } from "./constants";
 
-type Props = { view: ViewId; setView: (view: ViewId) => void; role: Role; displayName: string; query: string; setQuery: (value: string) => void; mobileNav: boolean; setMobileNav: (open: boolean) => void; queueCount: number; patients: Patient[]; notice: string; children: React.ReactNode };
+type Props = { view: ViewId; setView: (view: ViewId) => void; role: Role; displayName: string; dateLabel: string; query: string; setQuery: (value: string) => void; mobileNav: boolean; setMobileNav: (open: boolean) => void; queueCount: number; patients: Patient[]; notice: string; children: React.ReactNode };
 
-export function AppShell({ view, setView, role, displayName, query, setQuery, mobileNav, setMobileNav, queueCount, notice, children }: Props) {
+export function AppShell({ view, setView, role, displayName, dateLabel, query, setQuery, mobileNav, setMobileNav, queueCount, notice, children }: Props) {
   const navGroups = [
     { label: "Main menu", ids: ["overview", "appointments", "queue", "patients", "billing", "pharmacy"] },
     { label: "Operations", ids: ["triage", "consultation", "services"] },
@@ -40,7 +40,7 @@ export function AppShell({ view, setView, role, displayName, query, setQuery, mo
       <header className="topbar">
         <button className="icon-button menu-button" aria-label="Open navigation" onClick={() => setMobileNav(true)}><Menu size={20} /></button>
         <label className="search"><Search size={16} /><span className="sr-only">Search patients</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search patients, queue or department" /></label>
-        <div className="top-actions"><span className="topbar-meta"><CalendarDays size={15} />31 Aug 2026, Mon</span><span className="topbar-meta"><Clock3 size={15} />Morning Shift</span><button className="icon-button notification-button" aria-label="Notifications"><Bell size={16} /><span /></button><div className="avatar" aria-hidden="true">{displayName.charAt(0).toUpperCase()}</div><div className="staff-identity"><span className="staff-name">{displayName}</span><small>{role}</small></div><button className="icon-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut({ callbackUrl: "/sign-in" })}><LogOut size={16} /></button></div>
+        <div className="top-actions"><span className="topbar-meta"><CalendarDays size={15} />{dateLabel}</span><span className="topbar-meta"><Clock3 size={15} />Morning Shift</span><button className="icon-button notification-button" aria-label="Notifications"><Bell size={16} /><span /></button><div className="avatar" aria-hidden="true">{displayName.charAt(0).toUpperCase()}</div><div className="staff-identity"><span className="staff-name">{displayName}</span><small>{role}</small></div><button className="icon-button" aria-label="Sign out" title="Sign out" onClick={() => void signOut({ callbackUrl: "/sign-in" })}><LogOut size={16} /></button></div>
       </header>
       <main className="main"><div className="content">{notice && <div className="live-notice" role="status" aria-live="polite">{notice}</div>}{children}</div></main>
     </div>

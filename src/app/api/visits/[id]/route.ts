@@ -22,6 +22,7 @@ import {
 import { getVisitById } from "../../../../server/repositories/visit-repository";
 import { updateVisitPriority } from "../../../../server/services/visit-service";
 import { visitPrioritySchema } from "../../../../server/validation/visit-mutations";
+import { enforceMutationRateLimit } from "../../../../server/security/rate-limit";
 
 type VisitRouteContext = { params: Promise<{ id: string }> };
 const idSchema = z.string().uuid();
@@ -54,6 +55,7 @@ export async function PATCH(
   try {
     const session = await authorizeRequest(request, Capability.QUEUE_PRIORITY_UPDATE);
     enforceSameOrigin(request);
+    await enforceMutationRateLimit(request, session.userId);
     const id = idSchema.parse((await context.params).id);
     const input = await parseMutationJson(request, visitPrioritySchema);
     const result = await updateVisitPriority(

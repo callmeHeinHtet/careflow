@@ -22,6 +22,7 @@ import {
 import { getPatientById } from "../../../../server/repositories/patient-repository";
 import { updatePatientDemographics } from "../../../../server/services/patient-service";
 import { patientUpdateSchema } from "../../../../server/validation/patient-mutations";
+import { enforceMutationRateLimit } from "../../../../server/security/rate-limit";
 
 type PatientRouteContext = { params: Promise<{ id: string }> };
 const idSchema = z.string().uuid();
@@ -54,6 +55,7 @@ export async function PATCH(
   try {
     const session = await authorizeRequest(request, Capability.PATIENT_DEMOGRAPHICS_UPDATE);
     enforceSameOrigin(request);
+    await enforceMutationRateLimit(request, session.userId);
     const id = idSchema.parse((await context.params).id);
     const idempotencyKey = parseIdempotencyKey(request);
     const input = await parseMutationJson(request, patientUpdateSchema);
