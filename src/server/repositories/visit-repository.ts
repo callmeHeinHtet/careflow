@@ -33,6 +33,7 @@ function serializeVisit(visit: VisitRecord) {
       dateOfBirth: dateToIso(visit.patient.dateOfBirth),
       sex: visit.patient.sex,
       phone: visit.patient.phone,
+      address: visit.patient.address,
       allergies: visit.patient.allergies.map((allergy) => allergy.substance),
     },
     department: {

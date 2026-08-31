@@ -12,10 +12,10 @@ export type AuditEntry = {
   details: string;
 };
 
-export type Prescription = { medicineId: string; quantity: number; directions: string; status: "ordered" | "dispensed" };
+export type Prescription = { id?: string; medicineId: string; quantity: number; directions: string; status: "ordered" | "dispensed" };
 export type Billing = { consultation: number; labs: number; medication: number; status: "unpaid" | "paid" };
 export type Patient = {
-  id: string; queueNumber: string; name: string; age: number; sex: "F" | "M"; phone: string; address: string;
+  id: string; visitId?: string; visitVersion?: number; invoiceVersion?: number; queueNumber: string; name: string; age: number; sex: "F" | "M" | "OTHER"; phone: string; address: string;
   allergies: string[]; department: string; stage: Stage; priority: Priority; arrival: string; symptoms: string;
   vitals?: { temperature: string; bloodPressure: string; heartRate: string; spo2: string };
   triageNotes?: string; findings?: string; diagnosis?: string; prescriptions: Prescription[]; labs: string[]; followUp?: string; billing: Billing;
