@@ -26,6 +26,7 @@ function serializeVisit(visit: VisitRecord) {
     version: visit.version,
     patient: {
       id: visit.patient.id,
+      version: visit.patient.version,
       medicalRecordNumber: visit.patient.medicalRecordNumber,
       name: patientName(visit.patient.firstName, visit.patient.lastName),
       firstName: visit.patient.firstName,

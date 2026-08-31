@@ -15,10 +15,11 @@ export type AuditEntry = {
 export type Prescription = { id?: string; medicineId: string; quantity: number; directions: string; status: "ordered" | "dispensed" };
 export type Billing = { consultation: number; labs: number; medication: number; status: "unpaid" | "paid" };
 export type Patient = {
-  id: string; visitId?: string; visitVersion?: number; invoiceVersion?: number; queueNumber: string; name: string; age: number; sex: "F" | "M" | "OTHER"; phone: string; address: string;
+  id: string; patientVersion?: number; visitId?: string; visitVersion?: number; invoiceVersion?: number; departmentId?: string; queueNumber: string; name: string; firstName?: string; lastName?: string; dateOfBirth?: string; age: number; sex: "F" | "M" | "OTHER"; phone: string; address: string;
   allergies: string[]; department: string; stage: Stage; priority: Priority; arrival: string; symptoms: string;
   vitals?: { temperature: string; bloodPressure: string; heartRate: string; spo2: string };
   triageNotes?: string; findings?: string; diagnosis?: string; prescriptions: Prescription[]; labs: string[]; followUp?: string; billing: Billing;
 };
 export type InventoryItem = { id: string; name: string; form: string; stock: number; reorderAt: number; expiry: string; unitPrice: number };
-export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; audit: AuditEntry[] };
+export type DepartmentOption = { id: string; code: string; name: string };
+export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; departments: DepartmentOption[]; audit: AuditEntry[] };

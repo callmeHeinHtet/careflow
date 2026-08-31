@@ -27,7 +27,7 @@ export async function getWorkspaceSnapshot(
   db: PrismaClient,
   actor: { actorUserId: string; role: StaffRole },
 ): Promise<DemoState> {
-  const [visits, medications, labServices, audit] = await Promise.all([
+  const [visits, medications, labServices, departments, audit] = await Promise.all([
     listVisits(db, { limit: 25 }),
     db.medication.findMany({
       where: { active: true },
@@ -35,6 +35,7 @@ export async function getWorkspaceSnapshot(
       orderBy: { name: "asc" },
     }),
     db.clinicalService.findMany({ where: { active: true, type: "LAB" }, orderBy: { name: "asc" } }),
+    db.department.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     listAuditEvents(db, { ...actor, limit: 50 }),
   ]);
 
@@ -45,17 +46,22 @@ export async function getWorkspaceSnapshot(
         lines.filter((line) => line.type === type).reduce((sum, line) => sum + line.total, 0);
       return {
         id: visit.patient.id,
+        patientVersion: visit.patient.version,
         visitId: visit.id,
         visitVersion: visit.version,
         invoiceVersion: visit.invoice?.version,
         queueNumber: visit.queueToken,
         name: visit.patient.name,
+        firstName: visit.patient.firstName,
+        lastName: visit.patient.lastName,
+        dateOfBirth: visit.patient.dateOfBirth.slice(0, 10),
         age: ageAt(visit.patient.dateOfBirth),
         sex: visit.patient.sex,
         phone: visit.patient.phone,
         address: visit.patient.address,
         allergies: visit.patient.allergies,
         department: visit.department.name,
+        departmentId: visit.department.id,
         stage: visit.stage.toLowerCase() as Stage,
         priority: visit.priority.toLowerCase() as Priority,
         arrival: visit.arrivedAt.slice(11, 16),
@@ -98,6 +104,7 @@ export async function getWorkspaceSnapshot(
       unitPrice: decimalToNumber(medication.unitPrice),
     })),
     labServices: labServices.map((service) => ({ id: service.id, name: service.name })),
+    departments: departments.map((department) => ({ id: department.id, code: department.code, name: department.name })),
     audit: audit.items.map((event) => ({
       id: event.id,
       actor: event.actorName,

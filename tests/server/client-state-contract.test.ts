@@ -9,4 +9,19 @@ describe("client state boundary", () => {
     expect(source).not.toContain("../../lib/domain");
     expect(source).toContain('/api/workspace');
   });
+
+  it("connects patient registration, demographic editing, and queue priority to server mutations", () => {
+    const source = readFileSync("src/components/careflow/careflow-app.tsx", "utf8");
+    expect(source).toContain('mutate("PATCH"');
+    expect(source).toContain('/api/patients');
+    expect(source).toContain('/api/visits/${patient.visitId}');
+    expect(source).toContain("PatientRegistrationDialog");
+    expect(source).toContain("PatientEditDialog");
+  });
+
+  it("loads active departments into the server-authoritative workspace", () => {
+    const source = readFileSync("src/server/repositories/workspace-repository.ts", "utf8");
+    expect(source).toContain("db.department.findMany");
+    expect(source).toContain("departments:");
+  });
 });
