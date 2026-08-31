@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 describe("production verification automation", () => {
   it("provides a complete local verification command", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-    expect(pkg.scripts.typecheck).toBe("tsc --noEmit");
+    expect(pkg.scripts.typecheck).toBe("next typegen && tsc --noEmit");
     expect(pkg.scripts.verify).toContain("npm run build");
     expect(pkg.scripts.verify).toContain("npm audit --audit-level=high");
   });
@@ -16,5 +16,10 @@ describe("production verification automation", () => {
     for (const command of ["prisma migrate deploy", "npm test", "test:integration", "npm run lint", "npm run typecheck", "npm run build", "npm audit --audit-level=high"]) {
       expect(source).toContain(command);
     }
+  });
+
+  it("runs GitHub Actions when the active master branch is pushed", () => {
+    const source = readFileSync(".github/workflows/ci.yml", "utf8");
+    expect(source).toMatch(/branches:\s*\[[^\]]*\bmaster\b[^\]]*\]/);
   });
 });
