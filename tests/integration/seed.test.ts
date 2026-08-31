@@ -23,9 +23,10 @@ describe("CareFlow fictional seed", () => {
     await seedCareFlow(db);
     await seedCareFlow(db);
 
-    const [departments, patients, visits, medications, lots, invoices, auditEvents, users, staff] =
+    const [departments, clinicalServices, patients, visits, medications, lots, invoices, auditEvents, users, staff] =
       await Promise.all([
         db.department.count(),
+        db.clinicalService.count(),
         db.patient.count(),
         db.visit.count(),
         db.medication.count(),
@@ -36,8 +37,9 @@ describe("CareFlow fictional seed", () => {
         db.staffProfile.count(),
       ]);
 
-    expect({ departments, patients, visits, medications, lots, invoices, auditEvents, users, staff }).toEqual({
+    expect({ departments, clinicalServices, patients, visits, medications, lots, invoices, auditEvents, users, staff }).toEqual({
       departments: 6,
+      clinicalServices: 4,
       patients: 8,
       visits: 8,
       medications: 4,

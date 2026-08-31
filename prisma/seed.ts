@@ -1,5 +1,6 @@
 import { pathToFileURL } from "node:url";
 import {
+  ClinicalServiceType,
   InventoryTransactionType,
   InvoiceLineType,
   InvoiceStatus,
@@ -26,6 +27,9 @@ const ids = {
   ),
   medications: [1, 2, 3, 4].map((value) =>
     `40000000-0000-4000-8000-${String(value).padStart(12, "0")}`,
+  ),
+  services: [1, 2, 3, 4].map((value) =>
+    `a0000000-0000-4000-8000-${String(value).padStart(12, "0")}`,
   ),
   lots: [1, 2, 3, 4].map((value) =>
     `50000000-0000-4000-8000-${String(value).padStart(12, "0")}`,
@@ -85,6 +89,7 @@ async function clearOperationalData(db: PrismaClient) {
   await db.visit.deleteMany();
   await db.patientAllergy.deleteMany();
   await db.patient.deleteMany();
+  await db.clinicalService.deleteMany();
   await db.department.deleteMany();
   await db.user.deleteMany();
 }
@@ -97,6 +102,18 @@ export async function seedCareFlow(db: PrismaClient) {
     for (const [index, [code, name, capacity]] of departments.entries()) {
       await tx.department.create({
         data: { id: ids.departments[index], code, name, capacity, displayOrder: index + 1 },
+      });
+    }
+
+    const services = [
+      ["CONSULT-GENERAL", "General consultation", ClinicalServiceType.CONSULTATION, 15000],
+      ["LAB-CBC", "Complete blood count", ClinicalServiceType.LAB, 8000],
+      ["LAB-URINE", "Urinalysis", ClinicalServiceType.LAB, 6000],
+      ["LAB-CXR", "Chest X-ray", ClinicalServiceType.LAB, 25000],
+    ] as const;
+    for (const [index, [code, name, type, unitPrice]] of services.entries()) {
+      await tx.clinicalService.create({
+        data: { id: ids.services[index], code, name, type, unitPrice },
       });
     }
 
@@ -204,7 +221,7 @@ export async function seedCareFlow(db: PrismaClient) {
     });
   });
 
-  return { departments: 6, patients: 8, visits: 8, medications: 4, invoices: 3, auditEvents: 3, users: 6, staff: 6 };
+  return { departments: 6, clinicalServices: 4, patients: 8, visits: 8, medications: 4, invoices: 3, auditEvents: 3, users: 6, staff: 6 };
 }
 
 async function main() {

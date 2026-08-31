@@ -29,7 +29,7 @@
 - Enforce allowed stages, role capabilities, and conflict responses containing current state.
 - Add visit read, priority, and triage routes with integration coverage.
 
-## Task 4: Consultation and orders
+## Task 4: Consultation and orders — Complete
 
 - Persist consultation, lab orders, prescriptions, invoice lines, and the next visit stage atomically.
 - Calculate all prices from persisted medication and service data.

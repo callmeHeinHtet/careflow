@@ -38,6 +38,7 @@ export async function resetTestDb(db: TestDb) {
     db.visit.deleteMany(),
     db.patientAllergy.deleteMany(),
     db.patient.deleteMany(),
+    db.clinicalService.deleteMany(),
     db.department.deleteMany(),
     db.user.deleteMany(),
   ]);

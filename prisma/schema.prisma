@@ -64,6 +64,11 @@ enum InvoiceLineType {
   ADJUSTMENT
 }
 
+enum ClinicalServiceType {
+  CONSULTATION
+  LAB
+}
+
 enum PaymentStatus {
   PENDING
   COMPLETED
@@ -213,8 +218,25 @@ model Department {
   updatedAt     DateTime       @updatedAt
   visits        Visit[]
   staffProfiles StaffProfile[]
+  clinicalServices ClinicalService[]
 
   @@index([active, displayOrder])
+}
+
+model ClinicalService {
+  id           String              @id @default(uuid()) @db.Uuid
+  code         String              @unique
+  name         String
+  type         ClinicalServiceType
+  unitPrice    Decimal             @db.Decimal(12, 2)
+  active       Boolean             @default(true)
+  departmentId String?             @db.Uuid
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  department   Department?         @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+
+  @@index([type, active, name])
+  @@index([departmentId, type, active])
 }
 
 model Patient {
