@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
   AuthorizationError,
@@ -12,7 +13,16 @@ import {
   errorResponse,
   internalErrorResponse,
 } from "../../../server/http/json-response";
+import { appErrorResponse } from "../../../server/http/app-error";
+import {
+  enforceSameOrigin,
+  parseIdempotencyKey,
+  parseMutationJson,
+} from "../../../server/http/mutation-request";
+import { mutationResponse, requestIpAddress } from "../../../server/http/mutation-response";
 import { listPatients } from "../../../server/repositories/patient-repository";
+import { registerPatient } from "../../../server/services/patient-service";
+import { patientRegistrationSchema } from "../../../server/validation/patient-mutations";
 
 const patientQuerySchema = z.object({
   query: z.string().trim().max(100).optional(),
@@ -39,5 +49,31 @@ export async function GET(request: NextRequest): Promise<Response> {
       return errorResponse("VALIDATION_FAILED", "Invalid patient query", 400);
     }
     return internalErrorResponse(error);
+  }
+}
+
+export async function POST(request: NextRequest): Promise<Response> {
+  const correlationId = randomUUID();
+  try {
+    const session = await authorizeRequest(request, Capability.PATIENT_REGISTER);
+    enforceSameOrigin(request);
+    const idempotencyKey = parseIdempotencyKey(request);
+    const input = await parseMutationJson(request, patientRegistrationSchema);
+    const result = await registerPatient(
+      getDb(),
+      input,
+      {
+        userId: session.userId,
+        displayName: session.displayName,
+        role: session.role,
+        correlationId,
+        ipAddress: requestIpAddress(request),
+      },
+      idempotencyKey,
+    );
+    return mutationResponse(result, correlationId);
+  } catch (error) {
+    if (error instanceof AuthorizationError) return authorizationErrorResponse(error);
+    return appErrorResponse(error, correlationId);
   }
 }

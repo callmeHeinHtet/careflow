@@ -92,6 +92,7 @@ function serializePatient(patient: PatientRecord) {
     sex: patient.sex,
     phone: patient.phone,
     address: patient.address,
+    version: patient.version,
     allergies: patient.allergies.map((allergy) => allergy.substance),
     visits: patient.visits.map(serializeVisit),
   };
@@ -144,7 +145,7 @@ export async function listPatients(
 }
 
 export async function getPatientById(
-  db: PrismaClient,
+  db: PrismaClient | Prisma.TransactionClient,
   id: string,
 ): Promise<PatientDetail | null> {
   const patient = await db.patient.findFirst({

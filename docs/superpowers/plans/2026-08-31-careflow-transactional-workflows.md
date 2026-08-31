@@ -6,7 +6,7 @@
 
 **Stack:** Next.js 16 App Router, Prisma 7/PostgreSQL, Zod 4, Vitest 4.
 
-## Task 1: Shared mutation infrastructure
+## Task 1: Shared mutation infrastructure — Complete
 
 - Add typed application errors and one safe error-to-response translator.
 - Add strict JSON/content-length parsing, same-origin enforcement, correlation IDs, and validated idempotency keys.
@@ -14,7 +14,7 @@
 - Add a transactional audit writer and database-level audit immutability guard.
 - Cover helpers and persistence behavior with unit and integration tests.
 
-## Task 2: Patient registration and demographics
+## Task 2: Patient registration and demographics — Complete
 
 - Add strict patient registration/update schemas.
 - Generate stable MRNs and queue tokens on the server.
