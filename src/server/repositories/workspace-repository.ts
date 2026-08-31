@@ -27,15 +27,16 @@ export async function getWorkspaceSnapshot(
   db: PrismaClient,
   actor: { actorUserId: string; role: StaffRole },
 ): Promise<DemoState> {
-  const [visits, medications, labServices, departments, audit] = await Promise.all([
+  const [visits, medications, services, departments, staff, audit] = await Promise.all([
     listVisits(db, { limit: 25 }),
     db.medication.findMany({
       where: { active: true },
       include: { lots: { orderBy: { expiresAt: "asc" } } },
       orderBy: { name: "asc" },
     }),
-    db.clinicalService.findMany({ where: { active: true, type: "LAB" }, orderBy: { name: "asc" } }),
+    db.clinicalService.findMany({ where: { active: true }, include: { department: true }, orderBy: [{ type: "asc" }, { name: "asc" }] }),
     db.department.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    db.staffProfile.findMany({ include: { department: true }, orderBy: { displayName: "asc" } }),
     listAuditEvents(db, { ...actor, limit: 50 }),
   ]);
 
@@ -103,8 +104,10 @@ export async function getWorkspaceSnapshot(
       expiry: medication.lots[0]?.expiresAt.toISOString().slice(0, 10) ?? "—",
       unitPrice: decimalToNumber(medication.unitPrice),
     })),
-    labServices: labServices.map((service) => ({ id: service.id, name: service.name })),
-    departments: departments.map((department) => ({ id: department.id, code: department.code, name: department.name })),
+    labServices: services.filter((service) => service.type === "LAB").map((service) => ({ id: service.id, name: service.name })),
+    services: services.map((service) => ({ id: service.id, code: service.code, name: service.name, type: service.type, unitPrice: decimalToNumber(service.unitPrice), departmentId: service.departmentId, department: service.department?.name ?? null })),
+    departments: departments.map((department) => ({ id: department.id, code: department.code, name: department.name, capacity: department.capacity, active: department.active })),
+    staff: staff.map((member) => ({ id: member.id, employeeNumber: member.employeeNumber, displayName: member.displayName, role: roleLabel[member.role], status: member.employmentStatus, department: member.department?.name ?? null })),
     audit: audit.items.map((event) => ({
       id: event.id,
       actor: event.actorName,

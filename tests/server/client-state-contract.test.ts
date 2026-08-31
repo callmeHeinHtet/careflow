@@ -24,4 +24,15 @@ describe("client state boundary", () => {
     expect(source).toContain("db.department.findMany");
     expect(source).toContain("departments:");
   });
+
+  it("renders operational sections from the workspace instead of hard-coded reference rows", () => {
+    const viewSource = readFileSync("src/components/careflow/support-views.tsx", "utf8");
+    const repositorySource = readFileSync("src/server/repositories/workspace-repository.ts", "utf8");
+    expect(viewSource).not.toContain("const content =");
+    expect(viewSource).not.toContain("Dr. May Thandar");
+    expect(viewSource).toContain("data: DemoState");
+    expect(repositorySource).toContain("db.staffProfile.findMany");
+    expect(repositorySource).toContain("staff:");
+    expect(repositorySource).toContain("services:");
+  });
 });

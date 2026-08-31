@@ -96,7 +96,7 @@ export function CareFlowApp({ role, displayName, initialData }: { role: Role; di
                 ? <BillingView data={data} onSelect={open} can={can} onPay={pay} busy={busy} total={total} />
                 : view === "audit"
                   ? <AuditView data={data} />
-                  : <ReferenceSectionView view={view as "appointments" | "services" | "analytics" | "users" | "departments" | "settings"} />;
+                  : <ReferenceSectionView view={view as "appointments" | "services" | "analytics" | "users" | "departments" | "settings"} data={data} />;
 
   return <AppShell view={view} setView={setView} role={role} displayName={displayName} query={query} setQuery={setQuery} mobileNav={mobileNav} setMobileNav={setMobileNav} queueCount={queue.length} patients={data.patients} notice={notice}>
     {content}

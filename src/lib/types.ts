@@ -21,5 +21,7 @@ export type Patient = {
   triageNotes?: string; findings?: string; diagnosis?: string; prescriptions: Prescription[]; labs: string[]; followUp?: string; billing: Billing;
 };
 export type InventoryItem = { id: string; name: string; form: string; stock: number; reorderAt: number; expiry: string; unitPrice: number };
-export type DepartmentOption = { id: string; code: string; name: string };
-export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; departments: DepartmentOption[]; audit: AuditEntry[] };
+export type DepartmentOption = { id: string; code: string; name: string; capacity: number; active: boolean };
+export type ClinicalServiceOption = { id: string; code: string; name: string; type: "CONSULTATION" | "LAB"; unitPrice: number; departmentId: string | null; department: string | null };
+export type StaffMember = { id: string; employeeNumber: string; displayName: string; role: Role; status: "ACTIVE" | "ON_LEAVE" | "ENDED"; department: string | null };
+export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; services: ClinicalServiceOption[]; departments: DepartmentOption[]; staff: StaffMember[]; audit: AuditEntry[] };

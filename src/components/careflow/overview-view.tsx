@@ -12,16 +12,10 @@ import {
 import type { DemoState, Patient } from "../../lib/types";
 import { stageLabel } from "./constants";
 
-const departmentLoad = [
-  ["General medicine", 3, 4],
-  ["Pediatrics", 2, 3],
-  ["Orthopedics", 2, 3],
-  ["Pharmacy", 2, 2],
-] as const;
-
 export function OverviewView({ data, queue, onView, onSelect }: { data: DemoState; queue: Patient[]; onView: (view: "queue" | "pharmacy" | "audit") => void; onSelect: (patient: Patient) => void }) {
   const seen = data.patients.filter((patient) => ["pharmacy", "billing", "discharged"].includes(patient.stage)).length;
   const lowStock = data.inventory.filter((medicine) => medicine.stock <= medicine.reorderAt).length;
+  const departmentLoad = data.departments.map((department) => [department.name, data.patients.filter((patient) => patient.department === department.name && patient.stage !== "discharged").length, department.capacity] as const);
   const metrics = [
     { label: "Total patients", value: data.patients.length, note: "Today", Icon: UsersRound },
     { label: "Waiting now", value: queue.length, note: "In queue", Icon: UserRound },
@@ -59,7 +53,7 @@ export function OverviewView({ data, queue, onView, onSelect }: { data: DemoStat
 
       <aside className="overview-rail">
         <section className="rail-panel attention-panel"><header><h2>Needs attention</h2></header><button onClick={() => onView("queue")}><span className="rail-icon critical"><Clock3 size={16} /></span><span><strong>High waiting time</strong><small>{queue.length} patients are waiting</small></span><ArrowUpRight size={14} /></button><button onClick={() => onView("pharmacy")}><span className="rail-icon warning"><PackageSearch size={16} /></span><span><strong>Low stock alert</strong><small>{lowStock} medicines need review</small></span><ArrowUpRight size={14} /></button><button onClick={() => onView("audit")}><span className="rail-icon neutral"><AlertTriangle size={16} /></span><span><strong>Review recent activity</strong><small>{data.audit.length} audit events recorded</small></span><ArrowUpRight size={14} /></button></section>
-        <section className="rail-panel capacity-panel"><header><h2>Capacity overview</h2><span>Live</span></header>{departmentLoad.map(([name, used, total]) => <div className="rail-capacity" key={name}><div><strong>{name}</strong><span>{used} / {total}</span></div><div><span style={{ width: `${(used / total) * 100}%` }} /></div></div>)}</section>
+        <section className="rail-panel capacity-panel"><header><h2>Capacity overview</h2><span>Live</span></header>{departmentLoad.map(([name, used, total]) => <div className="rail-capacity" key={name}><div><strong>{name}</strong><span>{used} / {total}</span></div><div><span style={{ width: `${Math.min(100, (used / Math.max(total, 1)) * 100)}%` }} /></div></div>)}</section>
       </aside>
     </div>
   </>;
