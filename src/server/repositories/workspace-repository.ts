@@ -27,13 +27,14 @@ export async function getWorkspaceSnapshot(
   db: PrismaClient,
   actor: { actorUserId: string; role: StaffRole },
 ): Promise<DemoState> {
-  const [visits, medications, audit] = await Promise.all([
+  const [visits, medications, labServices, audit] = await Promise.all([
     listVisits(db, { limit: 25 }),
     db.medication.findMany({
       where: { active: true },
       include: { lots: { orderBy: { expiresAt: "asc" } } },
       orderBy: { name: "asc" },
     }),
+    db.clinicalService.findMany({ where: { active: true, type: "LAB" }, orderBy: { name: "asc" } }),
     listAuditEvents(db, { ...actor, limit: 50 }),
   ]);
 
@@ -96,6 +97,7 @@ export async function getWorkspaceSnapshot(
       expiry: medication.lots[0]?.expiresAt.toISOString().slice(0, 10) ?? "—",
       unitPrice: decimalToNumber(medication.unitPrice),
     })),
+    labServices: labServices.map((service) => ({ id: service.id, name: service.name })),
     audit: audit.items.map((event) => ({
       id: event.id,
       actor: event.actorName,

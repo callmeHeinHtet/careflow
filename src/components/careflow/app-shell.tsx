@@ -1,13 +1,13 @@
 "use client";
 
-import { Bell, CalendarDays, Clock3, LogOut, Menu, RotateCcw, X } from "lucide-react";
+import { Bell, CalendarDays, Clock3, LogOut, Menu, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 import type { Patient, Role } from "../../lib/types";
 import { navItems, type ViewId } from "./constants";
 
-type Props = { view: ViewId; setView: (view: ViewId) => void; role: Role; displayName: string; query: string; setQuery: (value: string) => void; mobileNav: boolean; setMobileNav: (open: boolean) => void; reset: () => void; queueCount: number; patients: Patient[]; notice: string; children: React.ReactNode };
+type Props = { view: ViewId; setView: (view: ViewId) => void; role: Role; displayName: string; query: string; setQuery: (value: string) => void; mobileNav: boolean; setMobileNav: (open: boolean) => void; queueCount: number; patients: Patient[]; notice: string; children: React.ReactNode };
 
-export function AppShell({ view, setView, role, displayName, mobileNav, setMobileNav, reset, queueCount, notice, children }: Props) {
+export function AppShell({ view, setView, role, displayName, mobileNav, setMobileNav, queueCount, notice, children }: Props) {
   const navGroups = [
     { label: "Main menu", ids: ["overview", "appointments", "queue", "patients", "billing", "pharmacy"] },
     { label: "Operations", ids: ["triage", "consultation", "services"] },
@@ -32,7 +32,7 @@ export function AppShell({ view, setView, role, displayName, mobileNav, setMobil
           })}
         </div>)}
       </nav>
-      <div className="sidebar-foot"><span><span className="status-dot" />Systems local</span><button className="reset-button" onClick={reset}><RotateCcw size={14} />Reset data</button></div>
+      <div className="sidebar-foot"><span><span className="status-dot" />PostgreSQL synced</span></div>
     </aside>
     {mobileNav && <button className="scrim" aria-label="Close navigation" onClick={() => setMobileNav(false)} />}
 

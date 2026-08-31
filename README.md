@@ -58,7 +58,7 @@ There are no passwords and no public sign-up. Unknown, suspended, deactivated, o
 - Protected `/api/dashboard` and `/api/patients` reads plus public dependency-aware `/api/health`.
 - Responsive sign-in, MFA enrollment, recovery, and verification interfaces.
 
-The visual workstation’s remaining workflow mutations still use its typed client demo store. Transactional server APIs and full client-to-server migration are the next delivery phase; the README does not claim those unfinished workflows are production-backed.
+The operational workstation now loads its patient, visit, inventory, billing, and audit snapshot from PostgreSQL. Triage, consultation, dispensing, and payment mutations use authenticated transactional APIs and refresh authoritative server state; browser storage is not an operational datastore.
 
 ## Architecture and security boundary
 

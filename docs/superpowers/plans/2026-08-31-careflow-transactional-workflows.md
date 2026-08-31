@@ -47,8 +47,8 @@
 
 - Add permission-filtered cursor-based audit reads. — Complete
 - Add a role-filtered PostgreSQL workspace snapshot matching the current UI view model. — Complete
-- Replace the CareFlow client demo store with server reads and mutation refreshes.
-- Add pending, validation, forbidden, and stale-conflict UI states.
+- Replace the CareFlow client demo store with server reads and mutation refreshes. — Complete
+- Add pending, validation, forbidden, and stale-conflict UI states. — Complete for implemented workflows
 - Verify a complete multi-role journey persists across process restarts.
 
 ## Completion gate

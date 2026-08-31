@@ -21,4 +21,4 @@ export type Patient = {
   triageNotes?: string; findings?: string; diagnosis?: string; prescriptions: Prescription[]; labs: string[]; followUp?: string; billing: Billing;
 };
 export type InventoryItem = { id: string; name: string; form: string; stock: number; reorderAt: number; expiry: string; unitPrice: number };
-export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; audit: AuditEntry[] };
+export type DemoState = { patients: Patient[]; inventory: InventoryItem[]; labServices: { id: string; name: string }[]; audit: AuditEntry[] };
