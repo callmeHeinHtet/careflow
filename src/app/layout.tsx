@@ -3,10 +3,11 @@ import "@fontsource-variable/instrument-sans";
 import "@fontsource-variable/jetbrains-mono";
 import "./globals.css";
 import "./simple.css";
+import "./auth.css";
 
 export const metadata: Metadata = {
   title: "CareFlow | Clinical operations workstation",
-  description: "A fictional, client-side hospital operations MVP for portfolio demonstration.",
+  description: "A fictional full-stack hospital operations system for portfolio demonstration.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

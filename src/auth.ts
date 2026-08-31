@@ -32,6 +32,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 12 * 60 * 60,
     updateAge: 15 * 60,
   },
+  pages: {
+    signIn: "/sign-in",
+    error: "/sign-in",
+    verifyRequest: "/sign-in?sent=1",
+  },
   providers: [
     Nodemailer({
       server: smtpServer,
