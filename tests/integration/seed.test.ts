@@ -44,7 +44,7 @@ describe("CareFlow fictional seed", () => {
       visits: 8,
       medications: 4,
       lots: 4,
-      invoices: 3,
+      invoices: 4,
       auditEvents: 3,
       users: 6,
       staff: 6,

@@ -197,16 +197,26 @@ export async function seedCareFlow(db: PrismaClient) {
     });
 
     const invoiceData = [
-      { visit: 4, status: InvoiceStatus.UNPAID, total: 24000, paid: false },
-      { visit: 5, status: InvoiceStatus.PAID, total: 15000, paid: true },
-      { visit: 7, status: InvoiceStatus.PAID, total: 12000, paid: true },
+      {
+        visit: 3,
+        status: InvoiceStatus.DRAFT,
+        total: 17500,
+        paid: false,
+        lines: [
+          { type: InvoiceLineType.CONSULTATION, description: "General consultation", quantity: 1, unitPrice: 15000, total: 15000 },
+          { type: InvoiceLineType.MEDICATION, description: "Ibuprofen 200 mg", quantity: 10, unitPrice: 250, total: 2500 },
+        ],
+      },
+      { visit: 4, status: InvoiceStatus.UNPAID, total: 24000, paid: false, lines: [{ type: InvoiceLineType.CONSULTATION, description: "Consultation", quantity: 1, unitPrice: 24000, total: 24000 }] },
+      { visit: 5, status: InvoiceStatus.PAID, total: 15000, paid: true, lines: [{ type: InvoiceLineType.CONSULTATION, description: "Consultation", quantity: 1, unitPrice: 15000, total: 15000 }] },
+      { visit: 7, status: InvoiceStatus.PAID, total: 12000, paid: true, lines: [{ type: InvoiceLineType.CONSULTATION, description: "Consultation", quantity: 1, unitPrice: 12000, total: 12000 }] },
     ] as const;
     for (const [index, invoice] of invoiceData.entries()) {
       await tx.invoice.create({
         data: {
           id: `70000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
           visitId: ids.visits[invoice.visit], status: invoice.status, subtotal: invoice.total, total: invoice.total,
-          lines: { create: { type: InvoiceLineType.CONSULTATION, description: "Consultation", quantity: 1, unitPrice: invoice.total, total: invoice.total } },
+          lines: { create: [...invoice.lines] },
           payments: invoice.paid ? { create: { amount: invoice.total, method: PaymentMethod.CASH, status: PaymentStatus.COMPLETED, reference: `DEMO-PAY-${index + 1}`, paidAt: new Date("2026-08-30T09:00:00.000Z") } } : undefined,
         },
       });
@@ -221,7 +231,7 @@ export async function seedCareFlow(db: PrismaClient) {
     });
   });
 
-  return { departments: 6, clinicalServices: 4, patients: 8, visits: 8, medications: 4, invoices: 3, auditEvents: 3, users: 6, staff: 6 };
+  return { departments: 6, clinicalServices: 4, patients: 8, visits: 8, medications: 4, invoices: 4, auditEvents: 3, users: 6, staff: 6 };
 }
 
 async function main() {

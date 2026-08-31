@@ -36,7 +36,7 @@
 - Reject inactive or unknown medication records and stale visit versions.
 - Add consultation routes and role-boundary tests.
 
-## Task 5: Dispensing and billing
+## Task 5: Dispensing and billing — Complete
 
 - Lock and consume inventory lots in earliest-expiry order without allowing negative stock.
 - Record immutable inventory movements and move visits to billing only when all prescriptions are dispensed.

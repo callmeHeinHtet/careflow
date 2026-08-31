@@ -13,6 +13,7 @@ export type AppErrorCode =
   | "IDEMPOTENCY_CONFLICT"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "ALLERGY_CONFLICT"
   | "INSUFFICIENT_STOCK"
   | "INTERNAL_ERROR";
 
