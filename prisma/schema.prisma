@@ -449,3 +449,18 @@ model AuditEvent {
   @@index([actorUserId, createdAt])
   @@index([createdAt])
 }
+
+model IdempotencyRecord {
+  id             String   @id @default(uuid()) @db.Uuid
+  actorUserId    String   @db.Uuid
+  scope          String
+  key            String
+  requestHash    String
+  responseStatus Int
+  responseBody   Json
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@unique([actorUserId, scope, key])
+  @@index([expiresAt])
+}

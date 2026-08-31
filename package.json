@@ -16,7 +16,7 @@
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
     "db:test:deploy": "dotenv -e .env.test -- prisma migrate deploy",
-    "db:generate": "prisma generate",
+    "db:generate": "dotenv -e .env.local -- prisma generate",
     "db:seed": "dotenv -e .env.local -- prisma db seed"
   },
   "dependencies": {

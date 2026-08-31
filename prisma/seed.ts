@@ -65,6 +65,7 @@ const staffMembers = [
 ] as const;
 
 async function clearOperationalData(db: PrismaClient) {
+  await db.idempotencyRecord.deleteMany();
   await db.recoveryCode.deleteMany();
   await db.mfaSecret.deleteMany();
   await db.session.deleteMany();
@@ -85,11 +86,11 @@ async function clearOperationalData(db: PrismaClient) {
   await db.patientAllergy.deleteMany();
   await db.patient.deleteMany();
   await db.department.deleteMany();
-  await db.auditEvent.deleteMany();
   await db.user.deleteMany();
 }
 
 export async function seedCareFlow(db: PrismaClient) {
+  await db.$executeRawUnsafe('TRUNCATE TABLE "AuditEvent"');
   await db.$transaction(async (tx) => {
     await clearOperationalData(tx as PrismaClient);
 

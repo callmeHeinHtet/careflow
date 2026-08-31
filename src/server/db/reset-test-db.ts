@@ -16,7 +16,9 @@ export function createTestDb() {
 export type TestDb = ReturnType<typeof createTestDb>;
 
 export async function resetTestDb(db: TestDb) {
+  await db.$executeRawUnsafe('TRUNCATE TABLE "AuditEvent"');
   await db.$transaction([
+    db.idempotencyRecord.deleteMany(),
     db.recoveryCode.deleteMany(),
     db.mfaSecret.deleteMany(),
     db.session.deleteMany(),
@@ -37,7 +39,6 @@ export async function resetTestDb(db: TestDb) {
     db.patientAllergy.deleteMany(),
     db.patient.deleteMany(),
     db.department.deleteMany(),
-    db.auditEvent.deleteMany(),
     db.user.deleteMany(),
   ]);
 }
