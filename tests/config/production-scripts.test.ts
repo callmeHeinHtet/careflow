@@ -19,6 +19,7 @@ describe("production verification automation", () => {
       expect(source).toContain(command);
     }
     expect(source).toContain("axllent/mailpit");
+    expect(source).toContain("actions/upload-artifact@v7");
     expect(source).toContain("playwright-report");
   });
 
