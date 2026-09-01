@@ -55,10 +55,16 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - name: Install Playwright Chromium
+        run: |
+          for attempt in 1 2 3; do
+            npx playwright install --with-deps chromium && break
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep 5
+          done
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && hashFiles('playwright-report/**') != '' }}
         with:
           name: playwright-report
           path: playwright-report/
