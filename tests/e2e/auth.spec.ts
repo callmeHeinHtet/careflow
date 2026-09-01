@@ -1,4 +1,4 @@
-import { expect, request, test } from "@playwright/test";
+import { expect, request, test, type Page } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 
 const mailpitUrl = process.env.MAILPIT_URL ?? "http://127.0.0.1:8025";
@@ -41,11 +41,7 @@ async function waitForSignInLink(recipient: string): Promise<string> {
   }
 }
 
-test("invited receptionist completes email sign-in, MFA enrollment, and sign-out", async ({ page }) => {
-  const email = "reception@careflow.test";
-
-  await page.goto("/");
-  await expect(page).toHaveURL(/\/sign-in(?:\?|$)/);
+async function enrollAndEnter(page: Page, email: string, displayName: string, role: string) {
   await page.getByLabel("Work email").fill(email);
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
   await expect(page.getByRole("status")).toContainText("Check your inbox");
@@ -72,8 +68,32 @@ test("invited receptionist completes email sign-in, MFA enrollment, and sign-out
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Operations overview" })).toBeVisible();
-  await expect(page.getByText("Aye Aye", { exact: true })).toBeVisible();
-  await expect(page.getByText("Reception", { exact: true })).toBeVisible();
+  const identity = page.locator(".staff-identity");
+  await expect(identity.getByText(displayName, { exact: true })).toBeVisible();
+  await expect(identity.getByText(role, { exact: true })).toBeVisible();
+}
+
+async function signOut(page: Page) {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/sign-in(?:\?|$)/);
+}
+
+async function fillTriage(page: Page) {
+  await page.getByLabel("Temperature (°C)").fill("37.1");
+  await page.getByLabel("Blood pressure").fill("118/76");
+  await page.getByLabel("Heart rate (bpm)").fill("78");
+  await page.getByLabel("SpO2 (%)").fill("99");
+  await page.getByLabel("Nursing notes").fill("Release journey observations");
+}
+
+test("invited staff complete secure authentication and the multi-role patient journey", async ({ page }) => {
+  test.setTimeout(120_000);
+  const patientName = "E2E Patient";
+
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/sign-in(?:\?|$)/);
+  await enrollAndEnter(page, "reception@careflow.test", "Aye Aye", "Reception");
 
   await page.getByRole("button", { name: "Patients", exact: true }).click();
   await page.getByRole("button", { name: "Add patient" }).click();
@@ -88,8 +108,8 @@ test("invited receptionist completes email sign-in, MFA enrollment, and sign-out
   await expect(page.getByRole("status")).toContainText("E2E Patient registered");
 
   const search = page.getByPlaceholder("Search patients, queue or department");
-  await search.fill("E2E Patient");
-  const patient = page.getByRole("button", { name: /E2E Patient/ });
+  await search.fill(patientName);
+  const patient = page.getByRole("button", { name: new RegExp(patientName) });
   await expect(patient).toBeVisible();
   await patient.focus();
   await page.keyboard.press("Enter");
@@ -130,7 +150,72 @@ test("invited receptionist completes email sign-in, MFA enrollment, and sign-out
   await page.getByRole("button", { name: /Patient Queue/ }).click();
   await expect(page.getByRole("heading", { name: "Patient Queue" })).toBeVisible();
 
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.getByRole("button", { name: "Sign out" }).click();
-  await expect(page).toHaveURL(/\/sign-in(?:\?|$)/);
+  await signOut(page);
+
+  await enrollAndEnter(page, "nurse@careflow.test", "Maya Win", "Nurse");
+  await page.getByRole("button", { name: /Patient Queue/ }).click();
+  let row = page.locator(".queue-table-row").filter({ hasText: patientName });
+  await row.getByRole("button", { name: "Send to triage" }).click();
+  await fillTriage(page);
+
+  await page.evaluate(async (name) => {
+    const workspaceResponse = await fetch("/api/workspace", { cache: "no-store" });
+    const workspace = await workspaceResponse.json();
+    const target = workspace.data.patients.find((candidate: { name: string }) => candidate.name === name);
+    const response = await fetch(`/api/visits/${target.visitId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({ version: target.visitVersion, priority: "CRITICAL" }),
+    });
+    if (!response.ok) throw new Error(`Concurrent priority update failed with ${response.status}`);
+  }, patientName);
+
+  await page.getByRole("button", { name: "Save triage" }).click();
+  await expect(page.getByRole("status")).toContainText("The visit changed");
+  await page.reload();
+  await page.getByRole("button", { name: /Patient Queue/ }).click();
+  row = page.locator(".queue-table-row").filter({ hasText: patientName });
+  await row.getByRole("button", { name: "Send to triage" }).click();
+  await fillTriage(page);
+  await page.getByRole("button", { name: "Save triage" }).click();
+  await expect(page.getByRole("status")).toContainText(`${patientName} advanced to consultation`);
+  await signOut(page);
+
+  await enrollAndEnter(page, "doctor@careflow.test", "Dr. Aye Min", "Doctor");
+  await page.getByRole("button", { name: "Consultations" }).click();
+  await expect(page.getByRole("heading", { name: "Consultation", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: new RegExp(patientName) }).click();
+  await page.getByRole("button", { name: "Start consultation" }).click();
+  await page.getByLabel("Findings").fill("Stable fictional presentation");
+  await page.getByLabel("Diagnosis").fill("Fictional release-check diagnosis");
+  await page.getByRole("dialog", { name: "Complete consultation" }).locator('.check-options input[type="checkbox"]').first().check();
+  await page.getByRole("button", { name: "Complete consultation" }).click();
+  await expect(page.getByRole("status")).toContainText(`${patientName} consultation completed`);
+  await signOut(page);
+
+  await enrollAndEnter(page, "pharmacy@careflow.test", "Thiri Moe", "Pharmacy");
+  await page.getByRole("button", { name: "Inventory" }).click();
+  const prescription = page.locator(".prescription").filter({ hasText: patientName });
+  await prescription.getByRole("button", { name: "Dispense" }).click();
+  await expect(page.getByRole("status")).toContainText("Prescription dispensed");
+  await signOut(page);
+
+  await enrollAndEnter(page, "cashier@careflow.test", "Min Thu", "Cashier");
+  await page.getByRole("button", { name: "Billing", exact: true }).click();
+  const invoice = page.locator(".invoice").filter({ hasText: patientName });
+  await invoice.getByRole("button", { name: "Mark paid" }).click();
+  await expect(page.getByRole("status")).toContainText(`${patientName} paid and discharged`);
+  await page.getByPlaceholder("Search patients, queue or department").fill(patientName);
+  await page.getByRole("button", { name: "Patients", exact: true }).click();
+  await expect(page.locator(".patient-row").filter({ hasText: patientName })).toContainText("discharged");
+  await signOut(page);
+
+  await enrollAndEnter(page, "admin@careflow.test", "CareFlow Admin", "Admin");
+  await page.getByRole("button", { name: "Daily Summary" }).click();
+  await expect(page.getByRole("heading", { name: "Daily Summary" })).toBeVisible();
+  await expect(page.getByText("INVOICE_SETTLED", { exact: true })).toBeVisible();
+  await signOut(page);
 });
