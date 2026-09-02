@@ -9,4 +9,9 @@ describe("production response security", () => {
     }
     expect(source).toContain("frame-ancestors 'none'");
   });
+
+  it("pins Prisma's optional MySQL driver above the credential-leak advisory", () => {
+    const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+    expect(pkg.overrides.mysql2).toBe("3.24.2");
+  });
 });

@@ -27,7 +27,7 @@ export const navItems = [
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "pharmacy", label: "Inventory", icon: PackageSearch },
   { id: "triage", label: "OPD Schedule", icon: Clock3 },
-  { id: "consultation", label: "Doctor Roster", icon: Stethoscope },
+  { id: "consultation", label: "Consultations", icon: Stethoscope },
   { id: "services", label: "Services", icon: Boxes },
   { id: "audit", label: "Daily Summary", icon: Activity },
   { id: "analytics", label: "Analytics", icon: BarChart3 },

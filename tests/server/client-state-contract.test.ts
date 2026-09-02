@@ -44,4 +44,11 @@ describe("client state boundary", () => {
     expect(overview).not.toContain("30 August 2026");
     expect(repository).toContain("generatedAt:");
   });
+
+  it("mounts the operational consultation queue for doctors", () => {
+    const app = readFileSync("src/components/careflow/careflow-app.tsx", "utf8");
+    const constants = readFileSync("src/components/careflow/constants.tsx", "utf8");
+    expect(app).toContain("<ConsultationView patients={data.patients}");
+    expect(constants).toContain('id: "consultation", label: "Consultations"');
+  });
 });

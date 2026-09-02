@@ -8,9 +8,9 @@ import { OverviewView } from "./overview-view";
 import { PatientEditDialog, PatientRegistrationDialog } from "./patient-dialogs";
 import { PatientDrawer } from "./patient-drawer";
 import { PatientsView } from "./patients-view";
-import { DoctorRosterView, ReferenceSectionView } from "./support-views";
+import { ReferenceSectionView } from "./support-views";
 import { ConsultationDialog, TriageDialog } from "./workflow-dialogs";
-import { AuditView, BillingView, PharmacyView, QueueView, TriageView } from "./workspace-views";
+import { AuditView, BillingView, ConsultationView, PharmacyView, QueueView, TriageView } from "./workspace-views";
 
 type MutationMethod = "POST" | "PATCH";
 
@@ -90,7 +90,7 @@ export function CareFlowApp({ role, displayName, initialData }: { role: Role; di
         : view === "triage"
           ? <TriageView patients={data.patients} onSelect={openTriage} />
           : view === "consultation"
-            ? <DoctorRosterView data={data} />
+            ? <ConsultationView patients={data.patients} onSelect={open} can={can} />
             : view === "pharmacy"
               ? <PharmacyView data={data} onSelect={open} can={can} onDispense={dispense} busy={busy} />
               : view === "billing"
